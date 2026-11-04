@@ -1,0 +1,55 @@
+# Codemagic build config for How Far Can You Hit It?
+# Place at the repo root. Codemagic reads this file when the repo is connected.
+
+workflows:
+  ios-first-build:
+    name: iOS First Build (Simulator, no signing)
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Build for simulator (compilation check, no signing needed)
+        script: |
+          xcodebuild -project HowFarCanYouHitIt.xcodeproj \
+            -scheme HowFarCanYouHitIt \
+            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphonesimulator \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  # ------------------------------------------------------------------
+  # TESTFLIGHT WORKFLOW — prerequisites before running:
+  # 1. App record, 3 in-app purchases, and Game Center leaderboard exist
+  #    in App Store Connect (see AppStore/app-store-connect-setup.md).
+  # 2. An App Store Connect API key is added in Codemagic (Teams >
+  #    Integrations). Never paste keys into chat or into this file.
+  # 3. stubMode is set to false in Sources/StoreManager.swift.
+  # ------------------------------------------------------------------
+  ios-testflight:
+    name: iOS TestFlight
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up keychain for code signing
+        script: |
+          keychain initialize
+      - name: Fetch signing files
+        script: |
+          app-store-connect fetch-signing-files \
+            --bundle-id com.tntfamily.howfar \
+            --platform IOS \
+            --type IOS_APP_STORE \
+            --create
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --project HowFarCanYouHitIt.xcodeproj \
+            --scheme HowFarCanYouHitIt
+      - name: Publish to TestFlight
+        script: |
+          app-store-connect publish \
+            --testflight \
+            --path $(find build/ios/ipa -name "*.ipa" | head -1)
