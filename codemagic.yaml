@@ -22,8 +22,11 @@ workflows:
   # TESTFLIGHT WORKFLOW — prerequisites before running:
   # 1. App record, 3 in-app purchases, and Game Center leaderboard exist
   #    in App Store Connect (see AppStore/app-store-connect-setup.md).
-  # 2. An App Store Connect API key is added in Codemagic (Teams >
-  #    Integrations). Never paste keys into chat or into this file.
+  # 2. An App Store Connect API key is added in Codemagic as the
+  #    "app_store_connect" environment variable group (App settings >
+  #    Environment variables): APP_STORE_CONNECT_KEY_IDENTIFIER,
+  #    APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_PRIVATE_KEY.
+  #    Never paste keys into chat or into this file.
   # 3. stubMode is set to false in Sources/StoreManager.swift.
   # ------------------------------------------------------------------
   ios-testflight:
@@ -32,6 +35,8 @@ workflows:
     environment:
       xcode: latest
       cocoapods: default
+      groups:
+        - app_store_connect
     scripts:
       - name: Set up keychain for code signing
         script: |
