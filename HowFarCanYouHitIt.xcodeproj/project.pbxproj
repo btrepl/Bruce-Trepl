@@ -1,0 +1,357 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		D0F5DE1C61866D6E02E5C763 /* BatArt.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 31B9019939514E40E47F0BFB /* BatArt.swift */;
+		};
+		90F7F256C8E4749EB605BFF7 /* BuilderViews.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 2A97041BFBB73018BE1E2251 /* BuilderViews.swift */;
+		};
+		95FE3CB6E21C8BC6B76ECEDE /* CharacterArt.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9E3CE18DCFAB27D0B468823B /* CharacterArt.swift */;
+		};
+		446F08EC10600094C1BB9EAD /* ContentView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 606C5501AF24F1BA74D4F968 /* ContentView.swift */;
+		};
+		FDEF84132360F101B9D645CD /* GameCenterManager.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 4BA7602E9D7313C41859BC1A /* GameCenterManager.swift */;
+		};
+		604EC5F9AF681B51509AE7D6 /* GameState.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 1619B18403B213773CE7290E /* GameState.swift */;
+		};
+		7F0D6CBB7B83961340EBCE22 /* GameView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9E20A7F4A848ABF27E1010FA /* GameView.swift */;
+		};
+		5DB1660084AE2FFB29512591 /* HowFarCanYouHitItApp.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A700DF9C0889F6E4310550AE /* HowFarCanYouHitItApp.swift */;
+		};
+		8A81ABCE02B949771A4AF05B /* Models.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 4E7E20F4F01013A3A3CF87C5 /* Models.swift */;
+		};
+		1D95A5192FE574789844D167 /* StoreManager.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 38F919EEC4599BF05C33CB1F /* StoreManager.swift */;
+		};
+		31B9019939514E40E47F0BFB /* BatArt.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = BatArt.swift;
+			path = BatArt.swift;
+			sourceTree = "<group>";
+		};
+		2A97041BFBB73018BE1E2251 /* BuilderViews.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = BuilderViews.swift;
+			path = BuilderViews.swift;
+			sourceTree = "<group>";
+		};
+		9E3CE18DCFAB27D0B468823B /* CharacterArt.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = CharacterArt.swift;
+			path = CharacterArt.swift;
+			sourceTree = "<group>";
+		};
+		606C5501AF24F1BA74D4F968 /* ContentView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = ContentView.swift;
+			path = ContentView.swift;
+			sourceTree = "<group>";
+		};
+		4BA7602E9D7313C41859BC1A /* GameCenterManager.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = GameCenterManager.swift;
+			path = GameCenterManager.swift;
+			sourceTree = "<group>";
+		};
+		1619B18403B213773CE7290E /* GameState.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = GameState.swift;
+			path = GameState.swift;
+			sourceTree = "<group>";
+		};
+		9E20A7F4A848ABF27E1010FA /* GameView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = GameView.swift;
+			path = GameView.swift;
+			sourceTree = "<group>";
+		};
+		A700DF9C0889F6E4310550AE /* HowFarCanYouHitItApp.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = HowFarCanYouHitItApp.swift;
+			path = HowFarCanYouHitItApp.swift;
+			sourceTree = "<group>";
+		};
+		4E7E20F4F01013A3A3CF87C5 /* Models.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = Models.swift;
+			path = Models.swift;
+			sourceTree = "<group>";
+		};
+		38F919EEC4599BF05C33CB1F /* StoreManager.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = StoreManager.swift;
+			path = StoreManager.swift;
+			sourceTree = "<group>";
+		};
+		6EDEBCE3A94A8852C819FDBE /* HowFarCanYouHitIt.app */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = HowFarCanYouHitIt.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		8B75FA3677F2E8853A6540FF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AF94AE8C979A7DD302DBBA9A = {
+			isa = PBXGroup;
+			children = (
+				577C67A7F3352BB519544BAB /* Sources */,
+				8FE3C93E3CA730CECC8D421A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		8FE3C93E3CA730CECC8D421A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6EDEBCE3A94A8852C819FDBE /* HowFarCanYouHitIt.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		577C67A7F3352BB519544BAB /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				31B9019939514E40E47F0BFB /* BatArt.swift */,
+				2A97041BFBB73018BE1E2251 /* BuilderViews.swift */,
+				9E3CE18DCFAB27D0B468823B /* CharacterArt.swift */,
+				606C5501AF24F1BA74D4F968 /* ContentView.swift */,
+				4BA7602E9D7313C41859BC1A /* GameCenterManager.swift */,
+				1619B18403B213773CE7290E /* GameState.swift */,
+				9E20A7F4A848ABF27E1010FA /* GameView.swift */,
+				A700DF9C0889F6E4310550AE /* HowFarCanYouHitItApp.swift */,
+				4E7E20F4F01013A3A3CF87C5 /* Models.swift */,
+				38F919EEC4599BF05C33CB1F /* StoreManager.swift */,
+			);
+			name = Sources;
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		C9335FF07B6084474C172EF4 /* HowFarCanYouHitIt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7EC029DBD29949F8F7DE6C09 /* Build configuration list for PBXNativeTarget "HowFarCanYouHitIt" */;
+			buildPhases = (
+				94FAD3C09B7D1B73515458E9 /* Sources */,
+				8B75FA3677F2E8853A6540FF /* Frameworks */,
+				0C63B356C96B719CEEFCD167 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HowFarCanYouHitIt;
+			productName = HowFarCanYouHitIt;
+			productReference = 6EDEBCE3A94A8852C819FDBE /* HowFarCanYouHitIt.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DD7512F5E0289CDDCE66B0F8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					C9335FF07B6084474C172EF4 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = ACC4A6ECBAAD37EF1A965DB6 /* Build configuration list for PBXProject "HowFarCanYouHitIt" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AF94AE8C979A7DD302DBBA9A;
+			productRefGroup = 8FE3C93E3CA730CECC8D421A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C9335FF07B6084474C172EF4 /* HowFarCanYouHitIt */,
+			);
+		};
+		0C63B356C96B719CEEFCD167 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		94FAD3C09B7D1B73515458E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0F5DE1C61866D6E02E5C763 /* BatArt.swift in Sources */,
+				90F7F256C8E4749EB605BFF7 /* BuilderViews.swift in Sources */,
+				95FE3CB6E21C8BC6B76ECEDE /* CharacterArt.swift in Sources */,
+				446F08EC10600094C1BB9EAD /* ContentView.swift in Sources */,
+				FDEF84132360F101B9D645CD /* GameCenterManager.swift in Sources */,
+				604EC5F9AF681B51509AE7D6 /* GameState.swift in Sources */,
+				7F0D6CBB7B83961340EBCE22 /* GameView.swift in Sources */,
+				5DB1660084AE2FFB29512591 /* HowFarCanYouHitItApp.swift in Sources */,
+				8A81ABCE02B949771A4AF05B /* Models.swift in Sources */,
+				1D95A5192FE574789844D167 /* StoreManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B21FEA8B361C5074C004CF32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				SDKROOT = iphoneos;
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		8E292DFB9EE8E9971CDBFCB8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				SDKROOT = iphoneos;
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		E6AE5786027779C3BF7E8F54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tntfamily.howfar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B6587FF502AD21EEA55F6E69 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tntfamily.howfar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		ACC4A6ECBAAD37EF1A965DB6 /* Build configuration list for PBXProject "HowFarCanYouHitIt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B21FEA8B361C5074C004CF32 /* Debug */,
+				8E292DFB9EE8E9971CDBFCB8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7EC029DBD29949F8F7DE6C09 /* Build configuration list for PBXNativeTarget "HowFarCanYouHitIt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E6AE5786027779C3BF7E8F54 /* Debug */,
+				B6587FF502AD21EEA55F6E69 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+	};
+	rootObject = DD7512F5E0289CDDCE66B0F8 /* Project object */;
+}
