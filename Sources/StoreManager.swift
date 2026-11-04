@@ -42,7 +42,7 @@ final class StoreManager: ObservableObject {
 
     /// STUB SWITCH. true = simulated purchases (no real charges).
     /// Set to false once the products above exist in App Store Connect.
-    private let stubMode = true
+    private let stubMode = false
 
     private let defaults = UserDefaults.standard
 
