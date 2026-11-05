@@ -8,20 +8,23 @@ import UIKit
 
 // MARK: - Build-a-Slugger
 
+/// Pick a head, a torso, and legs from the 20-entry sprite catalog.
+/// The preview composes the three parts into one character, exactly as
+/// the game renders it.
 struct BuildSluggerView: View {
     @EnvironmentObject var game: GameState
 
     @State private var name: String = ""
-    @State private var face: FaceStyle = .swoop
-    @State private var expression: ExpressionStyle = .grin
-    @State private var hat: HatStyle = .cap
-    @State private var jerseyColor: ColorChoice = .blue
+    @State private var headAsset: String = "santa"
+    @State private var torsoAsset: String = "santa"
+    @State private var legsAsset: String = "santa"
     @State private var didInit = false
 
     private var preview: Slugger {
         Slugger(id: "slugger-custom", name: name.isEmpty ? "My Slugger" : name,
-                preset: nil, face: face, hat: hat, jerseyColor: jerseyColor,
-                expression: expression, isCustom: true)
+                preset: nil, face: .swoop, hat: .cap, jerseyColor: .blue,
+                expression: .grin, isCustom: true,
+                headAsset: headAsset, torsoAsset: torsoAsset, legsAsset: legsAsset)
     }
 
     var body: some View {
@@ -29,26 +32,17 @@ struct BuildSluggerView: View {
             VStack(spacing: 18) {
                 HeaderBar(title: "Build-a-Slugger") { game.screen = .characters }
 
-                // Live preview: smaller body, larger goofy head, cartoonish.
-                CustomSluggerArt(slugger: preview, expression: expression)
+                // Live preview: the three parts composed, as in the game.
+                SluggerArtView(slugger: preview)
                     .frame(height: 190)
 
                 TextField("Name your slugger", text: $name)
                     .textFieldStyle(.roundedBorder)
                     .padding(.horizontal)
 
-                PickerRow(title: "Face", selection: $face, cases: FaceStyle.allCases) {
-                    $0.displayName
-                }
-                PickerRow(title: "Expression", selection: $expression, cases: ExpressionStyle.allCases) {
-                    $0.displayName
-                }
-                PickerRow(title: "Hat", selection: $hat, cases: HatStyle.allCases) {
-                    $0.displayName
-                }
-                PickerRow(title: "Jersey", selection: $jerseyColor, cases: ColorChoice.allCases) {
-                    $0.displayName
-                }
+                PartPickerRow(title: "Head", selection: $headAsset, part: .head)
+                PartPickerRow(title: "Torso", selection: $torsoAsset, part: .torso)
+                PartPickerRow(title: "Legs", selection: $legsAsset, part: .legs)
 
                 Button {
                     game.saveCustomSlugger(preview)
@@ -73,36 +67,47 @@ struct BuildSluggerView: View {
             if !didInit {
                 didInit = true
                 name = game.customSlugger.name
-                face = game.customSlugger.face
-                expression = game.customSlugger.expression
-                hat = game.customSlugger.hat
-                jerseyColor = game.customSlugger.jerseyColor
+                headAsset = game.customSlugger.headAsset
+                torsoAsset = game.customSlugger.torsoAsset
+                legsAsset = game.customSlugger.legsAsset
             }
         }
     }
 }
 
-/// A labeled chip picker row for an enum case list.
-struct PickerRow<T: Hashable & Identifiable>: View {
+/// A labeled horizontal picker of sprite parts (heads, torsos, or legs).
+struct PartPickerRow: View {
     let title: String
-    @Binding var selection: T
-    let cases: [T]
-    let label: (T) -> String
+    @Binding var selection: String
+    let part: SpriteRenderer.Part
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title).bold().padding(.horizontal)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(cases) { item in
-                        Button { selection = item } label: {
-                            Text(label(item))
-                                .font(.subheadline)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(selection == item ? Color.blue : Color(.secondarySystemBackground))
-                                .foregroundStyle(selection == item ? Color.white : Color.primary)
-                                .cornerRadius(20)
+                    ForEach(SpriteCatalog.all) { spec in
+                        let selected = selection == spec.id
+                        Button { selection = spec.id } label: {
+                            VStack(spacing: 2) {
+                                if let img = SpriteRenderer.partImage(asset: spec.id, part: part) {
+                                    Image(uiImage: img)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 52, height: 52)
+                                }
+                                Text(spec.displayName)
+                                    .font(.caption2)
+                                    .multilineTextAlignment(.center)
+                                    .frame(width: 64)
+                            }
+                            .padding(6)
+                            .background(selected ? Color.blue.opacity(0.15) : Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(selected ? Color.blue : Color.clear, lineWidth: 2)
+                            )
                         }
                         .buttonStyle(.plain)
                     }

@@ -108,9 +108,6 @@ struct HomeView: View {
                             .foregroundStyle(Color.white)
                             .cornerRadius(16)
                     }
-                    Text("Purchases are simulated in this build (stub mode). No real charge.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
 
                 VStack(spacing: 10) {
@@ -267,7 +264,7 @@ struct CharacterSelectView: View {
                     }
                 }
                 if !store.customBatUnlocked {
-                    Text("Build-a-Bat is a $0.99 unlock. Tap above to unlock (simulated).")
+                    Text("Build-a-Bat is a $0.99 unlock. Tap above to unlock.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

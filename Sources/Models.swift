@@ -82,6 +82,73 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+// MARK: - Sprite catalog (illustrated characters)
+
+/// One illustrated sprite in the catalog: the five presets plus the
+/// Build-a-Slugger variations. Cut lines are fractions of the image height;
+/// the sprites are cropped at 92% (home plate + ground shadow removed), so
+/// the fractions below are relative to the cropped image. The grip is where
+/// the hands hold the bat, as a fraction of the image.
+struct SpriteSpec: Identifiable {
+    let id: String
+    let displayName: String
+    let headEnd: CGFloat
+    let torsoEnd: CGFloat
+    let grip: CGPoint
+
+    /// Source pixels the stacked parts overlap by when composing a custom.
+    static let overlap: CGFloat = 6
+}
+
+enum SpriteCatalog {
+    static let all: [SpriteSpec] = [
+        SpriteSpec(id: "santa", displayName: "Santa",
+                   headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.62, y: 0.44)),
+        SpriteSpec(id: "trump", displayName: "Donald Trump",
+                   headEnd: 0.457, torsoEnd: 0.772, grip: CGPoint(x: 0.55, y: 0.46)),
+        SpriteSpec(id: "ballplayer", displayName: "The Ballplayer",
+                   headEnd: 0.435, torsoEnd: 0.674, grip: CGPoint(x: 0.58, y: 0.46)),
+        SpriteSpec(id: "bigfoot", displayName: "Bigfoot",
+                   headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.58, y: 0.44)),
+        SpriteSpec(id: "snowman", displayName: "Snowman",
+                   headEnd: 0.304, torsoEnd: 0.739, grip: CGPoint(x: 0.62, y: 0.44)),
+        SpriteSpec(id: "santa-yardcap", displayName: "Yard-Cap Santa",
+                   headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.62, y: 0.44)),
+        SpriteSpec(id: "pumpkin-head", displayName: "Pumpkin Head",
+                   headEnd: 0.435, torsoEnd: 0.674, grip: CGPoint(x: 0.58, y: 0.46)),
+        SpriteSpec(id: "santa-greensweater", displayName: "Green Sweater Santa",
+                   headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.62, y: 0.44)),
+        SpriteSpec(id: "reindeer-head", displayName: "Reindeer Head",
+                   headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.58, y: 0.44)),
+        SpriteSpec(id: "girl-head", displayName: "Slugger Girl",
+                   headEnd: 0.435, torsoEnd: 0.674, grip: CGPoint(x: 0.58, y: 0.46)),
+        SpriteSpec(id: "robot-head", displayName: "Robot Head",
+                   headEnd: 0.457, torsoEnd: 0.772, grip: CGPoint(x: 0.55, y: 0.46)),
+        SpriteSpec(id: "pirate-head", displayName: "Pirate Head",
+                   headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.58, y: 0.44)),
+        SpriteSpec(id: "halloween-jersey", displayName: "Halloween Jersey",
+                   headEnd: 0.435, torsoEnd: 0.674, grip: CGPoint(x: 0.58, y: 0.46)),
+        SpriteSpec(id: "santa-elfhat", displayName: "Elf-Hat Santa",
+                   headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.62, y: 0.44)),
+        SpriteSpec(id: "snowman-tophat", displayName: "Top-Hat Snowman",
+                   headEnd: 0.304, torsoEnd: 0.739, grip: CGPoint(x: 0.62, y: 0.44)),
+        SpriteSpec(id: "bigfoot-hoodie", displayName: "Hoodie Bigfoot",
+                   headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.58, y: 0.44)),
+        SpriteSpec(id: "santa-greenpants", displayName: "Green-Pants Santa",
+                   headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.62, y: 0.44)),
+        SpriteSpec(id: "ballplayer-sunglasses", displayName: "Cool Shades Ballplayer",
+                   headEnd: 0.435, torsoEnd: 0.674, grip: CGPoint(x: 0.58, y: 0.46)),
+        SpriteSpec(id: "ballplayer-greenjersey", displayName: "Green Jersey Ballplayer",
+                   headEnd: 0.435, torsoEnd: 0.674, grip: CGPoint(x: 0.58, y: 0.46)),
+        SpriteSpec(id: "snowman-bluescarf", displayName: "Blue-Scarf Snowman",
+                   headEnd: 0.304, torsoEnd: 0.739, grip: CGPoint(x: 0.62, y: 0.44)),
+    ]
+
+    static func spec(for id: String) -> SpriteSpec {
+        all.first { $0.id == id } ?? all[0]
+    }
+}
+
 // MARK: - Bats
 
 /// Every bat object that can appear in the game. Preset characters each have
@@ -186,6 +253,8 @@ enum HatStyle: String, CaseIterable, Identifiable, Codable {
 }
 
 /// A slugger: either one of the five presets or a custom build.
+/// Customs are built from illustrated sprite parts: a head, a torso, and
+/// legs, each picked from the 20-entry sprite catalog.
 struct Slugger: Identifiable, Codable, Equatable {
     var id: String
     var name: String
@@ -195,6 +264,10 @@ struct Slugger: Identifiable, Codable, Equatable {
     var jerseyColor: ColorChoice
     var expression: ExpressionStyle = .grin
     var isCustom: Bool
+    /// Build-a-Slugger part assets (sprite catalog ids). Ignored for presets.
+    var headAsset: String = "santa"
+    var torsoAsset: String = "santa"
+    var legsAsset: String = "santa"
 
     static func presetSlugger(_ preset: PresetID) -> Slugger {
         Slugger(id: "slugger-\(preset.rawValue)", name: preset.displayName,
@@ -204,7 +277,9 @@ struct Slugger: Identifiable, Codable, Equatable {
 
     static let defaultCustom = Slugger(id: "slugger-custom", name: "My Slugger",
                                        preset: nil, face: .swoop, hat: .cap,
-                                       jerseyColor: .blue, isCustom: true)
+                                       jerseyColor: .blue, isCustom: true,
+                                       headAsset: "santa-yardcap", torsoAsset: "santa",
+                                       legsAsset: "santa")
 }
 
 /// Jersey colors for custom sluggers.

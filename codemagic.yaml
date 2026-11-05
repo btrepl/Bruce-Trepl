@@ -9,6 +9,29 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
+      - name: Decode sprite assets
+        script: |
+          python3 <<'PYEOF'
+          import base64, json, os
+          src = 'Sprites'
+          out_base = 'Assets.xcassets'
+          count = 0
+          for fn in sorted(os.listdir(src)):
+              if not fn.endswith('.base64.txt'):
+                  continue
+              name = fn[:-len('.base64.txt')]
+              data = base64.b64decode(open(os.path.join(src, fn)).read())
+              d = os.path.join(out_base, f'{name}.imageset')
+              os.makedirs(d, exist_ok=True)
+              with open(os.path.join(d, f'{name}.png'), 'wb') as f:
+                  f.write(data)
+              contents = {"images": [{"idiom": "universal", "filename": f"{name}.png", "scale": "1x"}],
+                          "info": {"version": 1, "author": "xcode"}}
+              with open(os.path.join(d, 'Contents.json'), 'w') as f:
+                  json.dump(contents, f, indent=2)
+              count += 1
+          print(f'decoded {count} sprite assets')
+          PYEOF
       - name: Build for simulator (compilation check, no signing needed)
         script: |
           xcodebuild -project HowFarCanYouHitIt.xcodeproj \
@@ -78,6 +101,29 @@ workflows:
           sips -z 120 120 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-40@3x.png
           sips -z 120 120 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-60@2x.png
           sips -z 180 180 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-60@3x.png
+      - name: Decode sprite assets
+        script: |
+          python3 <<'PYEOF'
+          import base64, json, os
+          src = 'Sprites'
+          out_base = 'Assets.xcassets'
+          count = 0
+          for fn in sorted(os.listdir(src)):
+              if not fn.endswith('.base64.txt'):
+                  continue
+              name = fn[:-len('.base64.txt')]
+              data = base64.b64decode(open(os.path.join(src, fn)).read())
+              d = os.path.join(out_base, f'{name}.imageset')
+              os.makedirs(d, exist_ok=True)
+              with open(os.path.join(d, f'{name}.png'), 'wb') as f:
+                  f.write(data)
+              contents = {"images": [{"idiom": "universal", "filename": f"{name}.png", "scale": "1x"}],
+                          "info": {"version": 1, "author": "xcode"}}
+              with open(os.path.join(d, 'Contents.json'), 'w') as f:
+                  json.dump(contents, f, indent=2)
+              count += 1
+          print(f'decoded {count} sprite assets')
+          PYEOF
       - name: Archive app
         script: |
           xcodebuild -project HowFarCanYouHitIt.xcodeproj \

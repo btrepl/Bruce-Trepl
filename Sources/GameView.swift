@@ -38,6 +38,17 @@ struct GameView: View {
     /// Flat ground strip the ball bounces on.
     private let groundColor = Color(red: 0.42, green: 0.68, blue: 0.38)
 
+    /// Where the bat handle sits, from the slugger's grip point on the
+    /// sprite. The sprite displays at ~103 x 190 inside the 150 x 190
+    /// frame, and the bat is 40 x 120 with its handle at the bottom
+    /// (+60 from the bat view's center).
+    private var batOffset: CGSize {
+        let grip = SpriteRenderer.gripPoint(for: game.slugger)
+        let gripX = (grip.x - 0.5) * 103
+        let gripY = (grip.y - 0.5) * 190
+        return CGSize(width: gripX, height: gripY - 60)
+    }
+
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -71,7 +82,7 @@ struct GameView: View {
                         ZStack {
                             SluggerArtView(slugger: game.slugger)
                             BatArtView(bat: game.bat)
-                                .offset(x: -28, y: -84)
+                                .offset(batOffset)
                                 .rotationEffect(.degrees(swingAngle), anchor: .bottom)
                             if showSwoosh {
                                 SwooshArc()
