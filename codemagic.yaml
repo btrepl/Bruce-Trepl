@@ -111,8 +111,7 @@ workflows:
             -archivePath build/ios/xcarchive/HowFarCanYouHitIt.xcarchive \
             -exportPath build/ios/ipa \
             -exportOptionsPlist "$HOME/export_options.plist"
-      - name: Publish to TestFlight
+      - name: Upload to TestFlight
         script: |
           app-store-connect publish \
-            --testflight \
             --path $(find build/ios/ipa -name "*.ipa" | head -1)
