@@ -47,6 +47,9 @@ workflows:
             --platform IOS \
             --type IOS_APP_STORE \
             --create
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
       - name: Build IPA
         script: |
           xcode-project build-ipa \
