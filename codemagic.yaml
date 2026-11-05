@@ -69,6 +69,14 @@ workflows:
             -scheme HowFarCanYouHitIt \
             -archivePath build/ios/xcarchive/HowFarCanYouHitIt.xcarchive \
             archive
+      - name: Show signing state
+        script: |
+          echo "--- export options ---"
+          cat ~/export_options.plist || true
+          echo "--- keychain identities ---"
+          security find-identity -v -p codesigning || true
+          echo "--- archived app signature ---"
+          codesign -dv "build/ios/xcarchive/HowFarCanYouHitIt.xcarchive/Products/Applications/HowFarCanYouHitIt.app" || true
       - name: Export IPA
         script: |
           xcodebuild -exportArchive \
