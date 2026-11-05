@@ -50,6 +50,12 @@ workflows:
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles
+      - name: Archive app (full output for diagnosis)
+        script: |
+          xcodebuild -project HowFarCanYouHitIt.xcodeproj \
+            -scheme HowFarCanYouHitIt \
+            -archivePath build/ios/xcarchive/HowFarCanYouHitIt.xcarchive \
+            archive
       - name: Build IPA
         script: |
           xcode-project build-ipa \
