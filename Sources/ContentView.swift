@@ -37,7 +37,7 @@ struct HomeView: View {
                     .multilineTextAlignment(.center)
                     .padding(.top, 24)
 
-                Text("A yellow snowball is coming. How far can you hit it?")
+                Text("A baseball is coming. How far can you hit it?")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

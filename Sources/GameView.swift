@@ -1,7 +1,8 @@
 // GameView.swift
-// The field: a pitcher throws a YELLOW SNOWBALL, the player times a swing,
+// The field: a pitcher throws a BASEBALL, the player times a swing,
 // and the hit is measured in the season's unit — never feet.
-// Background is static mountains only (no forest, nothing scrolls).
+// No background scenery: a plain backdrop, a flat ground strip, and the
+// camera pans to follow the ball as it bounces and rolls to a stop.
 
 import SwiftUI
 import UIKit
@@ -22,55 +23,77 @@ struct GameView: View {
     @State private var tier: HitTier = .miss
     @State private var swingAngle: Double = 30
     @State private var showSwoosh = false
+    @State private var batterRotation: Double = 0
+    @State private var batterShift: CGFloat = 0
+    @State private var shakeOffset: CGFloat = 0
+    @State private var impactFlash = false
+    @State private var flightDistance: CGFloat = 0
+    @State private var flightDuration: Double = 2.6
 
     private let pitchDuration = 1.4
     private let sweetSpot = 0.85
 
+    /// Plain backdrop color (no scenery anywhere in the game).
+    private let backdrop = Color(red: 0.93, green: 0.96, blue: 1.0)
+    /// Flat ground strip the ball bounces on.
+    private let groundColor = Color(red: 0.42, green: 0.68, blue: 0.38)
+
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Sky
-                LinearGradient(
-                    colors: [game.season.skyTop, game.season.skyBottom],
-                    startPoint: .top, endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Plain backdrop, fixed to the screen (it never pans).
+                backdrop
+                    .ignoresSafeArea()
 
-                // Static mountains + ground strip (never moves)
-                VStack(spacing: 0) {
-                    Spacer()
-                    MountainsView().frame(height: 190)
-                    Rectangle()
-                        .fill(Color(red: 0.45, green: 0.70, blue: 0.40))
-                        .frame(height: 64)
-                }
-                .ignoresSafeArea(edges: .bottom)
-
-                // Pitcher machine (left)
-                PitchMachineView()
-                    .position(x: 74, y: geo.size.height - 119)
-
-                // Batter + bat (right)
-                ZStack {
-                    SluggerArtView(slugger: game.slugger)
-                        .scaleEffect(0.9)
-                    BatArtView(bat: game.bat)
-                        .scaleEffect(0.9)
-                        .offset(x: -28, y: -84)
-                        .rotationEffect(.degrees(swingAngle), anchor: .bottom)
-                    if showSwoosh {
-                        SwooshArc()
-                            .offset(x: -70, y: -120)
-                    }
-                }
-                .position(x: geo.size.width - 108, y: geo.size.height - 150)
-
-                // Ball, driven by the animation clock
+                // The world: ground, pitcher, batter, ball. This pans to
+                // follow the ball after a hit. HUD and cards stay fixed.
                 TimelineView(.animation) { timeline in
-                    ballLayer(date: timeline.date, geo: geo)
+                    let date = timeline.date
+                    let cam = cameraOffset(date: date, geo: geo)
+                    ZStack {
+                        // Flat ground strip, wide enough to cover the whole
+                        // camera pan. Uniform color, so it never looks wrong.
+                        Rectangle()
+                            .fill(groundColor)
+                            .frame(width: 5000, height: 64)
+                            .position(
+                                x: (geo.size.width - 195) - flightDistance / 2,
+                                y: geo.size.height - 32
+                            )
+
+                        // Pitcher machine (left)
+                        PitchMachineView()
+                            .shadow(color: Color.black.opacity(0.2), radius: 3, x: 2, y: 2)
+                            .position(x: 74, y: geo.size.height - 119)
+
+                        // Batter + bat: the whole figure twists through the
+                        // swing, so the character is seen actually swinging.
+                        ZStack {
+                            SluggerArtView(slugger: game.slugger)
+                            BatArtView(bat: game.bat)
+                                .offset(x: -28, y: -84)
+                                .rotationEffect(.degrees(swingAngle), anchor: .bottom)
+                            if showSwoosh {
+                                SwooshArc()
+                                    .offset(x: -70, y: -120)
+                            }
+                            ImpactFlash()
+                                .opacity(impactFlash ? 1 : 0)
+                                .offset(x: -87, y: 10)
+                        }
+                        .rotationEffect(.degrees(batterRotation), anchor: .bottom)
+                        .offset(x: batterShift)
+                        .position(x: geo.size.width - 108, y: geo.size.height - 150)
+
+                        // Ball, driven by the animation clock
+                        ballLayer(date: date, geo: geo)
+                    }
+                    .offset(x: -cam + shakeOffset)
+                    // Smooth camera return when a new swing starts.
+                    .animation(.easeOut(duration: 0.6), value: phase)
                 }
 
-                // HUD + controls
+                // HUD + controls (fixed, never pans)
                 VStack {
                     HStack {
                         Button { game.screen = .home } label: {
@@ -101,23 +124,51 @@ struct GameView: View {
         .onAppear { game.resetSwingsIfNeeded() }
     }
 
-    // MARK: - Ball
+    // MARK: - Ball flight + camera
+
+    /// Where the ball is in world coordinates at a given moment of the
+    /// flight. The ball arcs up off the bat, descends to the ground, then
+    /// bounces in shrinking hops and rolls to a stop.
+    private func flightPosition(elapsed: TimeInterval, geo: GeometryProxy) -> CGPoint {
+        let p = CGFloat(min(max(elapsed / flightDuration, 0), 1))
+        let ease = 1 - pow(1 - p, 3)  // decelerating: fast off the bat, rolling stop
+        let plateX = geo.size.width - 195
+        let contactY = geo.size.height - 140
+        let groundY = geo.size.height - 79
+        let x = plateX - flightDistance * ease
+        // Baseline sinks from contact height to the ground as it travels.
+        let baseY = contactY + (groundY - contactY) * p * p
+        let hops: CGFloat = finalDistance > 0 ? 3 + min(CGFloat(finalDistance) / 120, 3) : 1
+        let amp: CGFloat = finalDistance > 0 ? 50 + min(CGFloat(finalDistance), 400) * 0.25 : 10
+        let hop = amp * (1 - p) * abs(sin(p * hops * .pi))
+        return CGPoint(x: x, y: baseY - hop)
+    }
+
+    /// Camera offset: 0 until the ball flies past the left part of the
+    /// screen, then the view pans to keep the ball in frame.
+    private func cameraOffset(date: Date, geo: GeometryProxy) -> CGFloat {
+        guard phase == .flying || phase == .result else { return 0 }
+        let elapsed = date.timeIntervalSince(flightStart)
+        let point = flightPosition(elapsed: elapsed, geo: geo)
+        return min(0, point.x - geo.size.width * 0.42)
+    }
 
     @ViewBuilder
     private func ballLayer(date: Date, geo: GeometryProxy) -> some View {
         let ballY = geo.size.height - 140
+        let groundY = geo.size.height - 79
         let plateX = geo.size.width - 195
         switch phase {
         case .idle:
             // Ball resting in the pitcher's hand
-            YellowSnowballView()
+            BaseballView()
                 .position(x: 108, y: ballY)
         case .pitching:
             let elapsed = date.timeIntervalSince(pitchStart)
             let progress = min(max(elapsed / pitchDuration, 0), 1)
             let x = 108 + (plateX - 108) * progress
             let y = ballY - sin(progress * .pi) * 26
-            YellowSnowballView()
+            BaseballView()
                 .position(x: x, y: y)
             // Ball got past the batter without a swing: no swing used.
             if progress >= 1 {
@@ -129,12 +180,26 @@ struct GameView: View {
             }
         case .flying:
             let elapsed = date.timeIntervalSince(flightStart)
-            let t = min(elapsed / 1.3, 1)
-            let x = plateX - t * max(plateX - 30, 0)
-            let y = ballY - sin(t * .pi) * 170
-            YellowSnowballView()
-                .position(x: x, y: y)
-            if elapsed >= 1.6 {
+            let point = flightPosition(elapsed: elapsed, geo: geo)
+            // Ground shadow: shrinks and fades as the ball climbs.
+            let heightAbove = max(0, groundY - point.y)
+            let shadowScale = max(0.35, 1 - heightAbove / 260)
+            Ellipse()
+                .fill(Color.black.opacity(0.25 * shadowScale))
+                .frame(width: 36 * shadowScale, height: 9 * shadowScale)
+                .position(x: point.x, y: groundY + 14)
+            // Motion trail: fading ghosts of where the ball just was.
+            ForEach([0.18, 0.12, 0.06], id: \.self) { lag in
+                if elapsed - lag > 0 {
+                    let trail = flightPosition(elapsed: elapsed - lag, geo: geo)
+                    BaseballView()
+                        .opacity(lag > 0.15 ? 0.12 : lag > 0.09 ? 0.22 : 0.35)
+                        .position(trail)
+                }
+            }
+            BaseballView()
+                .position(point)
+            if elapsed >= flightDuration + 0.45 {
                 Color.clear.onAppear {
                     DispatchQueue.main.async {
                         if phase == .flying { phase = .result }
@@ -184,9 +249,6 @@ struct GameView: View {
                             .foregroundStyle(Color.white)
                             .cornerRadius(16)
                     }
-                    Text("Purchases are simulated in this build (stub mode). No real charge.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             case .pitching:
                 Button("SWING!") { swingNow() }
@@ -222,15 +284,38 @@ struct GameView: View {
 
         game.useSwing()
 
-        // Visible swing animation: wind-up is the rest pose, then swoosh.
-        withAnimation(.easeOut(duration: 0.14)) {
-            swingAngle = -55
-            showSwoosh = true
+        // Full-body swing: wind up (lean back, bat cocks), whip through
+        // (whole figure twists, bat sweeps), then follow through and reset.
+        withAnimation(.easeIn(duration: 0.12)) {
+            batterRotation = -14
+            batterShift = -6
+            swingAngle = 52
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            withAnimation(.easeOut(duration: 0.25)) {
-                swingAngle = 30
-                showSwoosh = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            withAnimation(.easeOut(duration: 0.10)) {
+                batterRotation = 36
+                batterShift = 8
+                swingAngle = -72
+                showSwoosh = true
+            }
+            if quality > 0.05 {
+                // Contact: impact flash + a screen-shake kick.
+                impactFlash = true
+                shakeOffset = 9
+                withAnimation(.interpolatingSpring(stiffness: 320, damping: 7)) {
+                    shakeOffset = 0
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
+                    withAnimation(.easeOut(duration: 0.2)) { impactFlash = false }
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
+                withAnimation(.easeOut(duration: 0.45)) {
+                    batterRotation = 0
+                    batterShift = 0
+                    swingAngle = 30
+                    showSwoosh = false
+                }
             }
         }
 
@@ -251,6 +336,9 @@ struct GameView: View {
         } else {
             isNewBest = false
         }
+        // Flight plan: bigger hits fly farther and bounce longer.
+        flightDistance = distance > 0 ? 260 + CGFloat(distance) * 3.2 : 150
+        flightDuration = distance > 0 ? 2.6 : 1.3
         flightStart = Date()
         phase = .flying
     }
@@ -323,7 +411,7 @@ struct GameView: View {
         VStack(spacing: 12) {
             Text("Took the pitch!")
                 .font(.title2).bold()
-            Text("No swing used. The yellow snowball sailed by.")
+            Text("No swing used. The baseball sailed by.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             Button("Pitch Again") { phase = .idle }
@@ -344,81 +432,50 @@ struct GameView: View {
 
 // MARK: - Field pieces
 
-/// The pitched ball: a yellow snowball (yellow gradient + speckles).
-struct YellowSnowballView: View {
+/// The pitched ball: a regular baseball — white with red seams.
+struct BaseballView: View {
     var body: some View {
         ZStack {
             Circle()
                 .fill(
                     RadialGradient(
-                        gradient: Gradient(colors: [Color.yellow, Color(red: 0.95, green: 0.75, blue: 0.15)]),
-                        center: .center,
-                        startRadius: 4,
+                        gradient: Gradient(colors: [
+                            Color.white,
+                            Color(red: 0.88, green: 0.88, blue: 0.90)
+                        ]),
+                        center: .topLeading,
+                        startRadius: 2,
                         endRadius: 16
                     )
                 )
-                .frame(width: 28, height: 28)
-            Circle().fill(Color(red: 0.85, green: 0.65, blue: 0.10))
-                .frame(width: 4, height: 4).offset(x: -6, y: -4)
-            Circle().fill(Color(red: 0.85, green: 0.65, blue: 0.10))
-                .frame(width: 3, height: 3).offset(x: 6, y: 5)
-            Circle().fill(Color(red: 0.85, green: 0.65, blue: 0.10))
-                .frame(width: 3, height: 3).offset(x: 2, y: -7)
-        }
-    }
-}
-
-/// Static mountains with snow caps. No forest, nothing animates.
-struct MountainsView: View {
-    var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
-            ZStack {
+                .frame(width: 30, height: 30)
+                .overlay(Circle().stroke(Color(red: 0.55, green: 0.55, blue: 0.58), lineWidth: 1))
+            // Red seams: two curved arcs
+            Path { p in
+                p.move(to: CGPoint(x: 7, y: 4))
+                p.addQuadCurve(to: CGPoint(x: 7, y: 26), control: CGPoint(x: 13, y: 15))
+            }
+            .stroke(Color.red, lineWidth: 1.6)
+            Path { p in
+                p.move(to: CGPoint(x: 23, y: 4))
+                p.addQuadCurve(to: CGPoint(x: 23, y: 26), control: CGPoint(x: 17, y: 15))
+            }
+            .stroke(Color.red, lineWidth: 1.6)
+            // Stitch ticks across the seams
+            ForEach([9, 14, 19], id: \.self) { y in
                 Path { p in
-                    p.move(to: CGPoint(x: 0, y: h))
-                    p.addLine(to: CGPoint(x: w * 0.18, y: h * 0.25))
-                    p.addLine(to: CGPoint(x: w * 0.36, y: h))
-                    p.addLine(to: CGPoint(x: w * 0.52, y: h * 0.40))
-                    p.addLine(to: CGPoint(x: w * 0.68, y: h))
-                    p.addLine(to: CGPoint(x: w * 0.84, y: h * 0.18))
-                    p.addLine(to: CGPoint(x: w, y: h))
-                    p.closeSubpath()
+                    p.move(to: CGPoint(x: 5, y: CGFloat(y)))
+                    p.addLine(to: CGPoint(x: 10, y: CGFloat(y) + 1))
                 }
-                .fill(Color(red: 0.35, green: 0.45, blue: 0.65))
-                // Snow caps on the three peaks
+                .stroke(Color.red, lineWidth: 1.2)
                 Path { p in
-                    let peak = CGPoint(x: w * 0.18, y: h * 0.25)
-                    p.move(to: CGPoint(x: peak.x - 24, y: peak.y + 26))
-                    p.addLine(to: peak)
-                    p.addLine(to: CGPoint(x: peak.x + 24, y: peak.y + 26))
-                    p.addLine(to: CGPoint(x: peak.x + 10, y: peak.y + 18))
-                    p.addLine(to: CGPoint(x: peak.x - 8, y: peak.y + 24))
-                    p.closeSubpath()
+                    p.move(to: CGPoint(x: 20, y: CGFloat(y) + 1))
+                    p.addLine(to: CGPoint(x: 25, y: CGFloat(y)))
                 }
-                .fill(Color.white)
-                Path { p in
-                    let peak = CGPoint(x: w * 0.52, y: h * 0.40)
-                    p.move(to: CGPoint(x: peak.x - 20, y: peak.y + 22))
-                    p.addLine(to: peak)
-                    p.addLine(to: CGPoint(x: peak.x + 20, y: peak.y + 22))
-                    p.addLine(to: CGPoint(x: peak.x + 8, y: peak.y + 15))
-                    p.addLine(to: CGPoint(x: peak.x - 6, y: peak.y + 20))
-                    p.closeSubpath()
-                }
-                .fill(Color.white)
-                Path { p in
-                    let peak = CGPoint(x: w * 0.84, y: h * 0.18)
-                    p.move(to: CGPoint(x: peak.x - 24, y: peak.y + 26))
-                    p.addLine(to: peak)
-                    p.addLine(to: CGPoint(x: peak.x + 24, y: peak.y + 26))
-                    p.addLine(to: CGPoint(x: peak.x + 10, y: peak.y + 18))
-                    p.addLine(to: CGPoint(x: peak.x - 8, y: peak.y + 24))
-                    p.closeSubpath()
-                }
-                .fill(Color.white)
+                .stroke(Color.red, lineWidth: 1.2)
             }
         }
+        .frame(width: 30, height: 30)
     }
 }
 
@@ -458,12 +515,27 @@ struct PitchMachineView: View {
 struct SwooshArc: View {
     var body: some View {
         Path { p in
-            p.addArc(center: .zero, radius: 55,
+            p.addArc(center: .zero, radius: 65,
                      startAngle: .degrees(-160), endAngle: .degrees(-20),
                      clockwise: false)
         }
-        .stroke(Color.white, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+        .stroke(Color.white, style: StrokeStyle(lineWidth: 6, lineCap: .round))
         .opacity(0.9)
-        .frame(width: 120, height: 120)
+        .frame(width: 140, height: 140)
+    }
+}
+
+/// Bright starburst at the contact point when the bat meets the ball.
+struct ImpactFlash: View {
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.white.opacity(0.85))
+                .frame(width: 46, height: 46)
+                .blur(radius: 6)
+            Image(systemName: "star.fill")
+                .font(.system(size: 30))
+                .foregroundStyle(Color.yellow)
+        }
     }
 }

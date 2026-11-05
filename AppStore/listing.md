@@ -4,7 +4,7 @@
 How Far Can You Hit It?
 
 ## Subtitle (max 30 characters)
-Smash snowballs. Go far.
+Smash baseballs. Go far.
 
 ## Category
 Games — Casual (secondary: Games — Sports)
@@ -18,12 +18,12 @@ $1.00 (paid app)
 - Swing Pack (5 extra swings) — $1.00
 
 ## Keywords (max 100 characters)
-baseball,slugger,snowball,pumpkin,christmas,party,arcade,funny,family,game
+baseball,slugger,homerun,pumpkin,christmas,party,arcade,funny,family,game
 
 ## Description
 How far can YOU hit it?
 
-Pick a slugger, step up to the plate, and smash a yellow snowball as far as you can. Distance isn't measured in boring feet — it's measured in pumpkins, Christmas trees, or baseball cards, depending on the season you pick.
+Pick a slugger, step up to the plate, and smash a baseball as far as you can. Distance isn't measured in boring feet — it's measured in pumpkins, Christmas trees, or baseball cards, depending on the season you pick.
 
 Choose from Santa, a golf-driving Trump, the Ballplayer, Bigfoot, and a funny Snowman — each with a signature bat, from a roll of gift wrap to a bare tree. Or build your own slugger and your own bat and take them to the plate.
 

@@ -19,7 +19,7 @@ Do NOT use the web prototype for store screenshots (per AppStore/listing.md).
   store screenshots and previews must be suitable for all audiences, so
   no shot may show a roast / small-hit saying — hype lines and neutral
   result cards only.
-1. Gameplay mid-swing — yellow snowball, mountains-only background, a big hit.
+1. Gameplay mid-swing — baseball, plain background, a big hit.
 2. Character picker — all five sluggers with signature bats visible.
 3. Season picker — Fall (pumpkins) / Christmas (Christmas Trees) / Normal (baseball cards).
 4. Result card — "It flew X pumpkins!" with a hype saying (big hit).

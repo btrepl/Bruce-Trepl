@@ -1,7 +1,7 @@
 # How Far Can You Hit It? — Native iOS Version
 
 A native SwiftUI rebuild of the "How Far Can You Hit It?" batting game.
-Pick a slugger, time your swing at a pitched **yellow snowball**, and see how
+Pick a slugger, time your swing at a pitched **baseball**, and see how
 far it flies — measured in pumpkins, Christmas Trees, or baseball cards.
 Never feet.
 
@@ -24,11 +24,13 @@ Never feet.
   power and speed (power slider 1–7, speed is the rest).
 - **Seasons (exactly 3):** Fall → pumpkins · Christmas → Christmas Trees ·
   Normal → baseball cards. The player picks; the unit is the whole joke.
-- **Gameplay:** the Pitch-O-Matic throws a yellow snowball. Tap SWING with
+- **Gameplay:** the Pitch-O-Matic throws a baseball. Tap SWING with
   timing — the closer to the sweet spot, the farther it flies. Bat power
   scales distance, bat speed widens the timing window. Visible swing
-  animation (rest pose → swoosh → follow-through). Background is static
-  mountains only, no forest, nothing scrolls.
+  animation (wind-up → whip through → follow-through, whole figure
+  twists, not just the bat). No background scenery: a plain backdrop,
+  a flat ground strip, and the camera pans to follow the ball as it
+  bounces and rolls to a stop.
 - **Sayings after every swing, tiered by hit size:**
   - Big (280+): hype — "It's outta here!", "Bye-bye!", "See ya!", "Oooooofffff!"
   - Medium (150–279): lightly mocking — "Not bad… for you",
@@ -83,7 +85,7 @@ Never feet.
 | `BatArt.swift` | Original art for all 8 bat objects, drawn upright for swinging |
 | `ContentView.swift` | Screen router, Home, Character Select, Season Picker, Leaderboard |
 | `BuilderViews.swift` | Build-a-Slugger and Build-a-Bat workshops |
-| `GameView.swift` | The field: pitching, timing, flight, result card, mountains backdrop |
+| `GameView.swift` | The field: pitching, timing, flight, result card, plain background, panning camera, bouncing ball |
 
 ## What is stubbed (and what to wire up next)
 

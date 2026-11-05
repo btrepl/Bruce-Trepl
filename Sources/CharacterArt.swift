@@ -11,6 +11,11 @@ struct SluggerArtView: View {
 
     var body: some View {
         ZStack {
+            // Soft ground shadow so the character sits on the field.
+            Ellipse()
+                .fill(Color.black.opacity(0.16))
+                .frame(width: 112, height: 16)
+                .offset(y: 96)
             switch slugger.preset {
             case .santa: SantaArt()
             case .trump: TrumpArt()
@@ -26,7 +31,7 @@ struct SluggerArtView: View {
 
 // MARK: - Helpers
 
-/// Simple triangle path, used for hats, noses, ties, mountains.
+/// Simple triangle path, used for hats, noses, ties, fur tufts.
 struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
@@ -38,8 +43,49 @@ struct Triangle: Shape {
     }
 }
 
+/// Cartoon arms reaching up-left to grip the bat handle (about (-28, -24)
+/// in the 150 x 190 slugger frame). The bat is drawn on top in GameView,
+/// so the hands read as gripping the handle.
+struct SwingArms: View {
+    let sleeve: Color
+    let hand: Color
+    var width: CGFloat = 15
+
+    var body: some View {
+        ZStack {
+            // Rear arm (slightly darker)
+            RoundedRectangle(cornerRadius: 7)
+                .fill(sleeve.opacity(0.85))
+                .frame(width: width, height: 52)
+                .offset(x: -12, y: -6)
+                .rotationEffect(.degrees(-30))
+            // Front arm
+            RoundedRectangle(cornerRadius: 7)
+                .fill(sleeve)
+                .frame(width: width, height: 52)
+                .offset(x: -22, y: -12)
+                .rotationEffect(.degrees(-52))
+            // Mitten hands gripping the handle
+            Circle().fill(hand).frame(width: 16, height: 16).offset(x: -28, y: -26)
+            Circle().fill(hand).frame(width: 14, height: 14).offset(x: -24, y: -19)
+        }
+    }
+}
+
 private let skin = Color(red: 0.98, green: 0.80, blue: 0.62)
 private let skinShadow = Color(red: 0.93, green: 0.68, blue: 0.48)
+private let skinLight = Color(red: 1.0, green: 0.88, blue: 0.72)
+
+/// Cel-shaded face: light from the top-left, shadow at the bottom-right.
+/// House cartoon style: bold black outlines, cel shading, big expressions.
+private func faceGradient() -> RadialGradient {
+    RadialGradient(
+        gradient: Gradient(colors: [skinLight, skin, skinShadow]),
+        center: .topLeading,
+        startRadius: 4,
+        endRadius: 55
+    )
+}
 
 // MARK: - Santa
 
@@ -65,8 +111,14 @@ struct SantaArt: View {
                 .offset(x: 18, y: 90)
             // Coat
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(red: 0.82, green: 0.15, blue: 0.15))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.95, green: 0.28, blue: 0.28), Color(red: 0.82, green: 0.15, blue: 0.15), Color(red: 0.58, green: 0.08, blue: 0.08)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 84, height: 66)
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.black, lineWidth: 3))
                 .offset(y: 28)
             Rectangle()
                 .fill(Color.white)
@@ -82,17 +134,20 @@ struct SantaArt: View {
                 .offset(y: 30)
             // Head
             Circle()
-                .fill(skin)
+                .fill(faceGradient())
                 .frame(width: 66, height: 66)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: -42)
             // Huge flowing beard
             Ellipse()
                 .fill(Color.white)
                 .frame(width: 78, height: 52)
+                .overlay(Ellipse().stroke(Color.black, lineWidth: 2.5))
                 .offset(y: -12)
             Ellipse()
                 .fill(Color.white)
                 .frame(width: 40, height: 22)
+                .overlay(Ellipse().stroke(Color.black, lineWidth: 2.5))
                 .offset(y: -28)
             // Big pink nose
             Circle()
@@ -104,6 +159,12 @@ struct SantaArt: View {
             Circle().fill(Color.black).frame(width: 6, height: 6).offset(x: 14, y: -52)
             Circle().fill(Color.white).frame(width: 2.5, height: 2.5).offset(x: -12, y: -53)
             Circle().fill(Color.white).frame(width: 2.5, height: 2.5).offset(x: 12, y: -53)
+            // Shine on the face
+            Ellipse()
+                .fill(Color.white.opacity(0.45))
+                .frame(width: 16, height: 10)
+                .offset(x: -18, y: -58)
+                .rotationEffect(.degrees(-20))
             // Rosy cheeks
             Circle().fill(Color(red: 0.98, green: 0.65, blue: 0.60))
                 .frame(width: 12, height: 12).offset(x: -26, y: -38)
@@ -113,6 +174,7 @@ struct SantaArt: View {
             Triangle()
                 .fill(Color(red: 0.82, green: 0.15, blue: 0.15))
                 .frame(width: 56, height: 42)
+                .overlay(Triangle().stroke(Color.black, lineWidth: 2.5))
                 .offset(x: 8, y: -84)
                 .rotationEffect(.degrees(18))
             RoundedRectangle(cornerRadius: 8)
@@ -123,6 +185,8 @@ struct SantaArt: View {
                 .fill(Color.white)
                 .frame(width: 16, height: 16)
                 .offset(x: 32, y: -100)
+            // Arms up, gripping the bat
+            SwingArms(sleeve: Color(red: 0.82, green: 0.15, blue: 0.15), hand: skin)
         }
     }
 }
@@ -151,8 +215,14 @@ struct TrumpArt: View {
                 .offset(x: 16, y: 90)
             // Suit + shirt + long red tie
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(red: 0.12, green: 0.18, blue: 0.38))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.22, green: 0.30, blue: 0.55), Color(red: 0.12, green: 0.18, blue: 0.38), Color(red: 0.07, green: 0.11, blue: 0.25)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 84, height: 66)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.black, lineWidth: 3))
                 .offset(y: 30)
             Triangle()
                 .fill(Color.white)
@@ -164,13 +234,20 @@ struct TrumpArt: View {
                 .offset(y: 28)
             // Big head
             Circle()
-                .fill(skin)
+                .fill(faceGradient())
                 .frame(width: 74, height: 74)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: -40)
             // Signature blond swoop / comb-over
             Ellipse()
-                .fill(Color(red: 0.98, green: 0.80, blue: 0.30))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 1.0, green: 0.88, blue: 0.45), Color(red: 0.98, green: 0.80, blue: 0.30), Color(red: 0.88, green: 0.62, blue: 0.12)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 84, height: 34)
+                .overlay(Ellipse().stroke(Color.black, lineWidth: 2.5))
                 .offset(y: -66)
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color(red: 0.98, green: 0.80, blue: 0.30))
@@ -194,11 +271,15 @@ struct TrumpArt: View {
                 .rotationEffect(.degrees(-12))
             Circle().fill(Color.black).frame(width: 7, height: 7).offset(x: -15, y: -44)
             Circle().fill(Color.black).frame(width: 7, height: 7).offset(x: 15, y: -44)
+            Circle().fill(Color.white).frame(width: 2.5, height: 2.5).offset(x: -13, y: -46)
+            Circle().fill(Color.white).frame(width: 2.5, height: 2.5).offset(x: 17, y: -46)
             // Scowl mouth
             Capsule()
                 .fill(Color(red: 0.55, green: 0.30, blue: 0.25))
                 .frame(width: 26, height: 7)
                 .offset(y: -20)
+            // Arms up, gripping the bat
+            SwingArms(sleeve: Color(red: 0.12, green: 0.18, blue: 0.38), hand: skin)
         }
     }
 }
@@ -227,8 +308,14 @@ struct BallplayerArt: View {
                 .offset(x: 16, y: 90)
             // Pinstripe jersey
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white, Color(red: 0.92, green: 0.92, blue: 0.95)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 82, height: 64)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.black, lineWidth: 3))
                 .offset(y: 30)
             ForEach([-24, -12, 0, 12, 24], id: \.self) { x in
                 Rectangle()
@@ -238,13 +325,20 @@ struct BallplayerArt: View {
             }
             // Big head
             Circle()
-                .fill(skin)
+                .fill(faceGradient())
                 .frame(width: 70, height: 70)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: -40)
             // Cap
             Ellipse()
-                .fill(Color(red: 0.15, green: 0.30, blue: 0.75))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.25, green: 0.42, blue: 0.90), Color(red: 0.15, green: 0.30, blue: 0.75), Color(red: 0.08, green: 0.18, blue: 0.50)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 74, height: 34)
+                .overlay(Ellipse().stroke(Color.black, lineWidth: 2.5))
                 .offset(y: -66)
             Ellipse()
                 .fill(Color(red: 0.15, green: 0.30, blue: 0.75))
@@ -269,6 +363,8 @@ struct BallplayerArt: View {
                 .fill(skin)
                 .frame(width: 6, height: 14)
                 .offset(y: -22)
+            // Arms up, gripping the bat
+            SwingArms(sleeve: Color.white, hand: skin)
         }
     }
 }
@@ -297,8 +393,14 @@ struct BigfootArt: View {
                 .frame(width: 20, height: 40)
                 .offset(x: 18, y: 70)
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(red: 0.75, green: 0.15, blue: 0.15))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.88, green: 0.28, blue: 0.28), Color(red: 0.75, green: 0.15, blue: 0.15), Color(red: 0.55, green: 0.08, blue: 0.08)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 86, height: 62)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.black, lineWidth: 3))
                 .offset(y: 30)
             ForEach([-24, 0, 24], id: \.self) { x in
                 Rectangle()
@@ -312,12 +414,35 @@ struct BigfootArt: View {
                 .offset(y: 30)
             // Shaggy head + face
             Circle()
-                .fill(Color(red: 0.45, green: 0.30, blue: 0.20))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.58, green: 0.40, blue: 0.27), Color(red: 0.45, green: 0.30, blue: 0.20), Color(red: 0.32, green: 0.20, blue: 0.13)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 74, height: 74)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: -40)
+            // Shaggy fur tufts around the head
+            Triangle()
+                .fill(Color(red: 0.45, green: 0.30, blue: 0.20))
+                .frame(width: 18, height: 20)
+                .offset(x: -34, y: -58)
+                .rotationEffect(.degrees(-18))
+            Triangle()
+                .fill(Color(red: 0.45, green: 0.30, blue: 0.20))
+                .frame(width: 18, height: 20)
+                .offset(x: 34, y: -58)
+                .rotationEffect(.degrees(18))
             Ellipse()
-                .fill(Color(red: 0.85, green: 0.70, blue: 0.55))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.93, green: 0.80, blue: 0.65), Color(red: 0.85, green: 0.70, blue: 0.55), Color(red: 0.72, green: 0.56, blue: 0.42)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 52, height: 44)
+                .overlay(Ellipse().stroke(Color.black, lineWidth: 2.5))
                 .offset(y: -32)
             // USA cap
             Ellipse()
@@ -352,6 +477,8 @@ struct BigfootArt: View {
                     .frame(width: 1.5, height: 14)
                     .offset(x: CGFloat(x), y: -20)
             }
+            // Furry arms up, gripping the bat
+            SwingArms(sleeve: Color(red: 0.45, green: 0.30, blue: 0.20), hand: Color(red: 0.85, green: 0.70, blue: 0.55))
         }
     }
 }
@@ -380,12 +507,24 @@ struct SnowmanArt: View {
                 .offset(x: 14, y: 90)
             // Belly + chest
             Circle()
-                .fill(Color.white)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white, Color(red: 0.88, green: 0.92, blue: 0.97)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 72, height: 72)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: 40)
             Circle()
-                .fill(Color.white)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white, Color(red: 0.88, green: 0.92, blue: 0.97)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 56, height: 56)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: -8)
             // Coal buttons
             Circle().fill(Color.black).frame(width: 7, height: 7).offset(y: 22)
@@ -404,8 +543,14 @@ struct SnowmanArt: View {
                 .rotationEffect(.degrees(24))
             // Enormous red scarf
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color(red: 0.85, green: 0.12, blue: 0.12))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.95, green: 0.25, blue: 0.25), Color(red: 0.85, green: 0.12, blue: 0.12), Color(red: 0.62, green: 0.06, blue: 0.06)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 60, height: 14)
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.black, lineWidth: 2.5))
                 .offset(y: -32)
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color(red: 0.85, green: 0.12, blue: 0.12))
@@ -413,8 +558,14 @@ struct SnowmanArt: View {
                 .offset(x: 16, y: -10)
             // Tiny head + long carrot nose
             Circle()
-                .fill(Color.white)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white, Color(red: 0.88, green: 0.92, blue: 0.97)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 50, height: 50)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: -58)
             Circle().fill(Color.black).frame(width: 6, height: 6).offset(x: -11, y: -64)
             Circle().fill(Color.black).frame(width: 6, height: 6).offset(x: 11, y: -64)
@@ -425,8 +576,14 @@ struct SnowmanArt: View {
                 .rotationEffect(.degrees(90))
             // Beanie with pom
             Ellipse()
-                .fill(Color(red: 0.25, green: 0.55, blue: 0.30))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.35, green: 0.68, blue: 0.40), Color(red: 0.25, green: 0.55, blue: 0.30), Color(red: 0.15, green: 0.40, blue: 0.20)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
                 .frame(width: 54, height: 26)
+                .overlay(Ellipse().stroke(Color.black, lineWidth: 2.5))
                 .offset(y: -80)
             RoundedRectangle(cornerRadius: 5)
                 .fill(Color(red: 0.85, green: 0.12, blue: 0.12))
@@ -436,6 +593,8 @@ struct SnowmanArt: View {
                 .fill(Color.white)
                 .frame(width: 14, height: 14)
                 .offset(y: -94)
+            // Twig arms up, gripping the bat
+            SwingArms(sleeve: Color(red: 0.45, green: 0.30, blue: 0.18), hand: Color(red: 0.45, green: 0.30, blue: 0.18), width: 6)
         }
     }
 }
@@ -486,11 +645,13 @@ struct CustomSluggerArt: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(slugger.jerseyColor.color)
                 .frame(width: 56, height: 40)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.black, lineWidth: 3))
                 .offset(y: 52)
             // Oversized goofy head (about two-thirds of the figure)
             Circle()
-                .fill(skin)
+                .fill(faceGradient())
                 .frame(width: 86, height: 86)
+                .overlay(Circle().stroke(Color.black, lineWidth: 3))
                 .offset(y: -12)
             // Hair by style
             HairArt(style: slugger.face)
@@ -498,6 +659,8 @@ struct CustomSluggerArt: View {
             ExpressionArt(style: expression)
             // Hat
             HatArt(style: slugger.hat)
+            // Arms up, gripping the bat
+            SwingArms(sleeve: slugger.jerseyColor.color, hand: skin)
         }
     }
 }

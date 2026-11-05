@@ -23,6 +23,7 @@ struct BatArtView: View {
             }
         }
         .frame(width: 40, height: 120)
+        .shadow(color: Color.black.opacity(0.25), radius: 3, x: 2, y: 3)
     }
 }
 
@@ -44,7 +45,12 @@ struct ClassicBatArt: View {
                 p.addLine(to: CGPoint(x: 23, y: 118))
                 p.closeSubpath()
             }
-            .fill(Color(red: 0.85, green: 0.68, blue: 0.45))
+            .fill(
+                LinearGradient(
+                    colors: [Color(red: 0.92, green: 0.78, blue: 0.58), Color(red: 0.85, green: 0.68, blue: 0.45), Color(red: 0.68, green: 0.50, blue: 0.30)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
             // Wood grain
             Path { p in
                 p.move(to: CGPoint(x: 20, y: 100))

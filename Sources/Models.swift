@@ -46,22 +46,6 @@ enum Season: String, CaseIterable, Identifiable, Codable {
         distance == 1 ? unitSingular : unitPlural
     }
 
-    /// Background colors for the season's theme.
-    var skyTop: Color {
-        switch self {
-        case .fall: return Color(red: 0.98, green: 0.85, blue: 0.62)
-        case .christmas: return Color(red: 0.72, green: 0.85, blue: 0.95)
-        case .normal: return Color(red: 0.62, green: 0.85, blue: 0.62)
-        }
-    }
-
-    var skyBottom: Color {
-        switch self {
-        case .fall: return Color(red: 0.99, green: 0.72, blue: 0.42)
-        case .christmas: return Color(red: 0.88, green: 0.94, blue: 1.0)
-        case .normal: return Color(red: 0.82, green: 0.94, blue: 0.78)
-        }
-    }
 }
 
 // MARK: - Preset characters
