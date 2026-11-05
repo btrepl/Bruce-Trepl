@@ -12,7 +12,7 @@ struct GameView: View {
     @EnvironmentObject var store: StoreManager
     @EnvironmentObject var gameCenter: GameCenterManager
 
-    private enum Phase { case idle, pitching, flying, result, tookPitch }
+    private enum Phase { case idle, pitching, swinging, flying, result, tookPitch }
 
     @State private var phase: Phase = .idle
     @State private var pitchStart = Date()
@@ -174,6 +174,10 @@ struct GameView: View {
             // Ball resting in the pitcher's hand
             BaseballView()
                 .position(x: 108, y: ballY)
+        case .swinging:
+            // Ball frozen at the plate while the batter winds up.
+            BaseballView()
+                .position(x: plateX, y: ballY)
         case .pitching:
             let elapsed = date.timeIntervalSince(pitchStart)
             let progress = min(max(elapsed / pitchDuration, 0), 1)
@@ -269,6 +273,10 @@ struct GameView: View {
                     .background(Color.red)
                     .foregroundStyle(Color.white)
                     .cornerRadius(20)
+            case .swinging:
+                Text("Swinging…")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
             case .flying:
                 Text("It's flying…")
                     .font(.headline)
@@ -295,40 +303,7 @@ struct GameView: View {
 
         game.useSwing()
 
-        // Full-body swing: wind up (lean back, bat cocks), whip through
-        // (whole figure twists, bat sweeps), then follow through and reset.
-        withAnimation(.easeIn(duration: 0.12)) {
-            batterRotation = -14
-            batterShift = -6
-            swingAngle = 52
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-            withAnimation(.easeOut(duration: 0.10)) {
-                batterRotation = 36
-                batterShift = 8
-                swingAngle = -72
-                showSwoosh = true
-            }
-            if quality > 0.05 {
-                // Contact: impact flash + a screen-shake kick.
-                impactFlash = true
-                shakeOffset = 9
-                withAnimation(.interpolatingSpring(stiffness: 320, damping: 7)) {
-                    shakeOffset = 0
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
-                    withAnimation(.easeOut(duration: 0.2)) { impactFlash = false }
-                }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
-                withAnimation(.easeOut(duration: 0.45)) {
-                    batterRotation = 0
-                    batterShift = 0
-                    swingAngle = 30
-                    showSwoosh = false
-                }
-            }
-        }
+        phase = .swinging
 
         let distance: Int
         if quality <= 0.05 {
@@ -350,8 +325,45 @@ struct GameView: View {
         // Flight plan: bigger hits fly farther and bounce longer.
         flightDistance = distance > 0 ? 260 + CGFloat(distance) * 3.2 : 150
         flightDuration = distance > 0 ? 2.6 : 1.3
-        flightStart = Date()
-        phase = .flying
+
+        // Full-body swing, slow enough to actually see: wind up (lean back,
+        // bat cocks), whip through (whole figure twists, bat sweeps down
+        // through the zone), hold the follow-through, then reset.
+        withAnimation(.easeIn(duration: 0.20)) {
+            batterRotation = -20
+            batterShift = -10
+            swingAngle = 60
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
+            withAnimation(.easeOut(duration: 0.28)) {
+                batterRotation = 42
+                batterShift = 12
+                swingAngle = -82
+                showSwoosh = true
+            }
+            // The ball leaves the plate as the bat whips through it.
+            flightStart = Date()
+            phase = .flying
+            if quality > 0.05 {
+                // Contact: impact flash + a screen-shake kick.
+                impactFlash = true
+                shakeOffset = 9
+                withAnimation(.interpolatingSpring(stiffness: 320, damping: 7)) {
+                    shakeOffset = 0
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
+                    withAnimation(.easeOut(duration: 0.2)) { impactFlash = false }
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                withAnimation(.easeOut(duration: 0.55)) {
+                    batterRotation = 0
+                    batterShift = 0
+                    swingAngle = 30
+                    showSwoosh = false
+                }
+            }
+        }
     }
 
     // MARK: - Cards
