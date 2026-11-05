@@ -66,6 +66,18 @@ workflows:
               plistlib.dump(opts, f)
           print('export options updated')
           PYEOF
+      - name: Generate app icons
+        script: |
+          mkdir -p Assets.xcassets/AppIcon.appiconset
+          cp AppStore/app-icon.png Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+          sips -z 40 40 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-20@2x.png
+          sips -z 60 60 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-20@3x.png
+          sips -z 58 58 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-29@2x.png
+          sips -z 87 87 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-29@3x.png
+          sips -z 80 80 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-40@2x.png
+          sips -z 120 120 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-40@3x.png
+          sips -z 120 120 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-60@2x.png
+          sips -z 180 180 AppStore/app-icon.png --out Assets.xcassets/AppIcon.appiconset/AppIcon-60@3x.png
       - name: Archive app
         script: |
           xcodebuild -project HowFarCanYouHitIt.xcodeproj \
