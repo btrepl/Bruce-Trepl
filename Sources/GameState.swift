@@ -14,6 +14,7 @@ final class GameState: ObservableObject {
     @Published var bat: Bat = .signatureBat(for: .ballplayer)
     @Published var season: Season = .fall
     @Published var swingsLeft: Int = 10
+    @Published var unlimitedSwings = false  // testing: never consume swings
     @Published var customSlugger: Slugger = .defaultCustom
     @Published var customBats: [Bat] = []
     @Published var leaderboard: [LeaderboardEntry] = []
@@ -23,6 +24,7 @@ final class GameState: ObservableObject {
 
     private enum Keys {
         static let swingsLeft = "hfSwingsLeft"
+        static let unlimitedSwings = "hfUnlimitedSwings"
         static let swingsDate = "hf SwingsDate"
         static let leaderboard = "hf Leaderboard"
         static let lifetimeBest = "hf LifetimeBest"
@@ -55,12 +57,20 @@ final class GameState: ObservableObject {
         }
     }
 
-    var canSwing: Bool { swingsLeft > 0 }
+    var canSwing: Bool { unlimitedSwings || swingsLeft > 0 }
 
     func useSwing() {
+        // Testing mode: swings are never consumed.
+        guard !unlimitedSwings else { return }
         guard swingsLeft > 0 else { return }
         swingsLeft -= 1
         defaults.set(swingsLeft, forKey: Keys.swingsLeft)
+    }
+
+    /// Testing toggle: unlimited swings, never consumes the daily 10.
+    func setUnlimitedSwings(_ value: Bool) {
+        unlimitedSwings = value
+        defaults.set(value, forKey: Keys.unlimitedSwings)
     }
 
     func addSwings(_ count: Int) {
@@ -127,6 +137,7 @@ final class GameState: ObservableObject {
 
     private func loadPersistedState() {
         swingsLeft = defaults.object(forKey: Keys.swingsLeft) as? Int ?? 10
+        unlimitedSwings = defaults.bool(forKey: Keys.unlimitedSwings)
         lifetimeBest = defaults.object(forKey: Keys.lifetimeBest) as? Int ?? 0
 
         if let data = defaults.data(forKey: Keys.leaderboard),

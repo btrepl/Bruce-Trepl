@@ -89,6 +89,14 @@ workflows:
               plistlib.dump(opts, f)
           print('export options updated')
           PYEOF
+      - name: Decode app icon v2
+        script: |
+          python3 <<'PYEOF'
+          import base64
+          data = base64.b64decode(open('AppStore/app-icon-v2.base64.txt').read())
+          open('AppStore/app-icon.png', 'wb').write(data)
+          print('app icon v2 decoded:', len(data), 'bytes')
+          PYEOF
       - name: Generate app icons
         script: |
           mkdir -p Assets.xcassets/AppIcon.appiconset

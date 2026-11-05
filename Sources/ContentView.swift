@@ -68,7 +68,7 @@ struct HomeView: View {
 
                 // Swings
                 HStack {
-                    Label("\(game.swingsLeft) swings left today", systemImage: "bolt.fill")
+                    Label(game.unlimitedSwings ? "Unlimited swings" : "\(game.swingsLeft) swings left today", systemImage: "bolt.fill")
                         .font(.headline)
                     Spacer()
                     if game.lifetimeBest > 0 {
@@ -77,6 +77,13 @@ struct HomeView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+
+                // Testing: unlimited swings, never consumes the daily 10.
+                Toggle("Unlimited swings (testing)", isOn: Binding(
+                    get: { game.unlimitedSwings },
+                    set: { game.setUnlimitedSwings($0) }
+                ))
+                .font(.subheadline)
 
                 Button {
                     if game.canSwing {
