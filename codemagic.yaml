@@ -50,6 +50,19 @@ workflows:
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles
+      - name: Fix export options for current Xcode
+        script: |
+          python3 <<'PYEOF'
+          import plistlib, os
+          p = os.path.expanduser('~/export_options.plist')
+          with open(p, 'rb') as f:
+              opts = plistlib.load(f)
+          opts['method'] = 'app-store-connect'
+          opts['signingCertificate'] = 'Apple Distribution'
+          with open(p, 'wb') as f:
+              plistlib.dump(opts, f)
+          print('export options updated')
+          PYEOF
       - name: Archive app
         script: |
           xcodebuild -project HowFarCanYouHitIt.xcodeproj \
