@@ -92,8 +92,8 @@ struct GameView: View {
                         ZStack {
                             SluggerArtView(slugger: game.slugger)
                             BatArtView(bat: game.bat)
-                                .offset(batOffset)
                                 .rotationEffect(.degrees(swingAngle), anchor: .bottom)
+                                .offset(batOffset)
                             if showSwoosh {
                                 SwooshArc()
                                     .offset(x: -70, y: -120)
