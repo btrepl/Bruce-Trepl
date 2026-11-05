@@ -2,14 +2,14 @@
 // Core data types for "How Far Can You Hit It?"
 // All character and bat art is original SwiftUI shapes drawn in
 // CharacterArt.swift and BatArt.swift. No licensed characters, no
-// trademarked bat names, and no feet anywhere in the UI.
+// trademarked bat names. Distance is measured in feet.
 
 import SwiftUI
 
 // MARK: - Seasons
 
-/// The three seasons the player can pick. Distance is measured ONLY in the
-/// season's unit. Feet are never shown anywhere in the UI.
+/// The three seasons the player can pick. Distance is measured in feet
+/// in every season; the season only changes the field decoration.
 enum Season: String, CaseIterable, Identifiable, Codable {
     case fall
     case christmas
@@ -25,25 +25,22 @@ enum Season: String, CaseIterable, Identifiable, Codable {
         }
     }
 
-    /// The unit distance is measured in for this season.
-    var unitSingular: String {
-        switch self {
-        case .fall: return "pumpkin"
-        case .christmas: return "Christmas Tree"
-        case .normal: return "baseball card"
-        }
-    }
+    /// Distance is measured in feet in every season.
+    var unitSingular: String { "foot" }
 
-    var unitPlural: String {
-        switch self {
-        case .fall: return "pumpkins"
-        case .christmas: return "Christmas Trees"
-        case .normal: return "baseball cards"
-        }
-    }
+    var unitPlural: String { "feet" }
 
     func unitName(for distance: Int) -> String {
         distance == 1 ? unitSingular : unitPlural
+    }
+
+    /// What the season decorates the field with (minimal).
+    var decoration: String {
+        switch self {
+        case .fall: return "A few pumpkins on the ground"
+        case .christmas: return "Christmas lights dangling"
+        case .normal: return "Plain field, no decoration"
+        }
     }
 
 }
@@ -103,15 +100,15 @@ struct SpriteSpec: Identifiable {
 enum SpriteCatalog {
     static let all: [SpriteSpec] = [
         SpriteSpec(id: "santa", displayName: "Santa",
-                   headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.82, y: 0.51)),
+                   headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.70, y: 0.30)),
         SpriteSpec(id: "trump", displayName: "Donald Trump",
-                   headEnd: 0.457, torsoEnd: 0.772, grip: CGPoint(x: 0.60, y: 0.60)),
+                   headEnd: 0.457, torsoEnd: 0.772, grip: CGPoint(x: 0.78, y: 0.26)),
         SpriteSpec(id: "ballplayer", displayName: "The Ballplayer",
-                   headEnd: 0.435, torsoEnd: 0.674, grip: CGPoint(x: 0.50, y: 0.58)),
+                   headEnd: 0.500, torsoEnd: 0.674, grip: CGPoint(x: 0.20, y: 0.41)),
         SpriteSpec(id: "bigfoot", displayName: "Bigfoot",
-                   headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.62, y: 0.48)),
+                   headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.68, y: 0.18)),
         SpriteSpec(id: "snowman", displayName: "Snowman",
-                   headEnd: 0.304, torsoEnd: 0.739, grip: CGPoint(x: 0.72, y: 0.48)),
+                   headEnd: 0.480, torsoEnd: 0.739, grip: CGPoint(x: 0.14, y: 0.30)),
         SpriteSpec(id: "santa-yardcap", displayName: "Yard-Cap Santa",
                    headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.62, y: 0.44)),
         SpriteSpec(id: "pumpkin-head", displayName: "Pumpkin Head",
@@ -304,9 +301,8 @@ enum ColorChoice: String, CaseIterable, Identifiable, Codable {
 
 // MARK: - Sayings
 
-/// Post-swing sayings, tiered by hit size. Thresholds are in the season's
-/// displayed unit (never feet): big >= 280, medium 150...279, small 1...149,
-/// miss = 0 (whiff or no contact).
+/// Post-swing sayings, tiered by hit size. Thresholds are in feet:
+/// big >= 280, medium 150...279, small 1...149, miss = 0 (whiff or no contact).
 enum HitTier {
     case big, medium, small, miss
 

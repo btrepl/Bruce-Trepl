@@ -21,8 +21,8 @@ Do NOT use the web prototype for store screenshots (per AppStore/listing.md).
   result cards only.
 1. Gameplay mid-swing — baseball, plain background, a big hit.
 2. Character picker — all five sluggers with signature bats visible.
-3. Season picker — Fall (pumpkins) / Christmas (Christmas Trees) / Normal (baseball cards).
-4. Result card — "It flew X pumpkins!" with a hype saying (big hit).
+3. Season picker — Fall (pumpkins on the ground) / Christmas (lights dangling) / Normal (plain field).
+4. Result card — "It flew X feet!" with a hype saying (big hit).
 5. Build-a-Slugger — a custom cartoon slugger (small body, large goofy head).
 6. Leaderboard — local/global board (only once Game Center is live; until then,
    use the local leaderboard screen and do not imply a global board exists).

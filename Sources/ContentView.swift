@@ -56,7 +56,7 @@ struct HomeView: View {
                         Text("Power \(game.bat.power) · Speed \(game.bat.speed)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        Text("Season: \(game.season.title) (\(game.season.unitPlural))")
+                        Text("Season: \(game.season.title)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -321,7 +321,7 @@ struct SeasonPickerView: View {
         ScrollView {
             VStack(spacing: 16) {
                 HeaderBar(title: "Pick Your Season") { game.screen = .home }
-                Text("Distance is measured in seasonal stuff — that's the whole point.")
+                Text("Pick a season — it decorates the field. Distance is always in feet.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -338,7 +338,7 @@ struct SeasonPickerView: View {
                                 .frame(width: 56, height: 56)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(season.title).bold()
-                                Text("Measured in \(season.unitPlural)")
+                                Text(season.decoration)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
@@ -388,13 +388,13 @@ struct SeasonIcon: View {
                 Triangle().fill(Color.green).frame(width: 28, height: 18).offset(y: 18)
                 Rectangle().fill(Color.brown).frame(width: 8, height: 12).offset(y: 30)
             case .normal:
-                // Baseball card
-                RoundedRectangle(cornerRadius: 6).fill(Color.white)
-                    .frame(width: 36, height: 48)
+                // Baseball (plain field)
+                Circle().fill(Color.white).frame(width: 40, height: 40)
                     .shadow(radius: 2)
-                Circle().fill(Color.red).frame(width: 16, height: 16).offset(y: -6)
-                Rectangle().fill(Color.blue).frame(width: 24, height: 4).offset(y: 12)
-                Rectangle().fill(Color.gray).frame(width: 24, height: 3).offset(y: 19)
+                Ellipse().fill(Color.red).frame(width: 4, height: 30)
+                    .rotationEffect(.degrees(30))
+                Ellipse().fill(Color.red).frame(width: 4, height: 30)
+                    .rotationEffect(.degrees(-30))
             }
         }
     }

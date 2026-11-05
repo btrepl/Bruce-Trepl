@@ -1,8 +1,9 @@
 // GameView.swift
 // The field: a pitcher throws a BASEBALL, the player times a swing,
-// and the hit is measured in the season's unit — never feet.
-// No background scenery: a plain backdrop, a flat ground strip, and the
-// camera pans to follow the ball as it bounces and rolls to a stop.
+// and the hit is measured in feet. The season only decorates the field
+// (Christmas lights, a few Fall pumpkins). No background scenery: a plain
+// backdrop, a flat ground strip, and the camera pans to follow the ball
+// as it bounces and rolls to a stop.
 
 import SwiftUI
 import UIKit
@@ -77,6 +78,15 @@ struct GameView: View {
                             .shadow(color: Color.black.opacity(0.2), radius: 3, x: 2, y: 2)
                             .position(x: 74, y: geo.size.height - 119)
 
+                        // Fall pumpkins sitting on the ground, left of the
+                        // plate (season decor; out of the ball's path).
+                        if game.season == .fall {
+                            ForEach([25, 95, 160], id: \.self) { x in
+                                GroundPumpkinView()
+                                    .position(x: CGFloat(x), y: geo.size.height - 79)
+                            }
+                        }
+
                         // Batter + bat: the whole figure twists through the
                         // swing, so the character is seen actually swinging.
                         ZStack {
@@ -115,8 +125,13 @@ struct GameView: View {
                         Text(game.season.title)
                             .bold()
                         Spacer()
-                        Label("\(game.swingsLeft) left", systemImage: "bolt.fill")
+                        Label(game.unlimitedSwings ? "Unlimited" : "\(game.swingsLeft) left", systemImage: "bolt.fill")
                             .font(.subheadline)
+                    }
+                    // Christmas lights dangling from the top (season decor).
+                    if game.season == .christmas {
+                        ChristmasLightsView()
+                            .frame(height: 44)
                     }
                     Spacer()
                     controls
@@ -244,7 +259,7 @@ struct GameView: View {
                     .background(Color.blue)
                     .foregroundStyle(Color.white)
                     .cornerRadius(16)
-                    Text("\(game.slugger.name) · \(game.bat.name) · \(game.season.unitPlural)")
+                    Text("\(game.slugger.name) · \(game.bat.name) · \(game.season.title)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
@@ -560,5 +575,52 @@ struct ImpactFlash: View {
                 .font(.system(size: 30))
                 .foregroundStyle(Color.yellow)
         }
+    }
+}
+
+/// Minimal Christmas decoration: a string of lights dangling from the top.
+struct ChristmasLightsView: View {
+    private let bulbColors: [Color] = [.red, .green, .yellow, .blue, .red, .green, .yellow, .blue, .red]
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            ZStack {
+                // The sagging string.
+                Path { p in
+                    p.move(to: CGPoint(x: 0, y: 0))
+                    p.addQuadCurve(to: CGPoint(x: w, y: 0), control: CGPoint(x: w / 2, y: 60))
+                }
+                .stroke(Color(red: 0.25, green: 0.35, blue: 0.25), lineWidth: 2)
+                // Bulbs hanging from the string.
+                ForEach(0..<9) { i in
+                    let t = Double(i) / 8.0
+                    let x = w * t
+                    let y = 120 * t * (1 - t)
+                    Rectangle()
+                        .fill(Color(red: 0.25, green: 0.35, blue: 0.25))
+                        .frame(width: 1.5, height: 8)
+                        .position(x: x, y: y + 4)
+                    Circle()
+                        .fill(bulbColors[i])
+                        .frame(width: 11, height: 11)
+                        .shadow(color: bulbColors[i].opacity(0.7), radius: 4)
+                        .position(x: x, y: y + 12)
+                }
+            }
+        }
+    }
+}
+
+/// Minimal Fall decoration: a pumpkin sitting on the ground.
+struct GroundPumpkinView: View {
+    var body: some View {
+        ZStack {
+            Circle().fill(Color.orange).frame(width: 34, height: 30)
+            Ellipse().fill(Color(red: 0.85, green: 0.45, blue: 0.10))
+                .frame(width: 6, height: 28)
+            Rectangle().fill(Color.green).frame(width: 4, height: 8).offset(y: -16)
+        }
+        .shadow(color: Color.black.opacity(0.2), radius: 2, x: 1, y: 1)
     }
 }

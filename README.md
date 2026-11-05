@@ -2,8 +2,7 @@
 
 A native SwiftUI rebuild of the "How Far Can You Hit It?" batting game.
 Pick a slugger, time your swing at a pitched **baseball**, and see how
-far it flies — measured in pumpkins, Christmas Trees, or baseball cards.
-Never feet.
+far it flies — measured in feet.
 
 > **IMPORTANT — NOT COMPILED HERE.** This code was written on a Linux VM
 > with no Xcode, so it has never been built. Open it in Xcode (below) and
@@ -22,8 +21,9 @@ Never feet.
   jersey color. Smaller body, larger goofy head, cartoonish person look.
 - **Build-a-Bat** ($0.99 unlock): pick an object, split 8 points between
   power and speed (power slider 1–7, speed is the rest).
-- **Seasons (exactly 3):** Fall → pumpkins · Christmas → Christmas Trees ·
-  Normal → baseball cards. The player picks; the unit is the whole joke.
+- **Seasons (exactly 3):** Fall → a few pumpkins on the ground · Christmas
+  → Christmas lights dangling · Normal → plain field. The player picks; the
+  season only decorates the field. Distance is always in feet.
 - **Gameplay:** the Pitch-O-Matic throws a baseball. Tap SWING with
   timing — the closer to the sweet spot, the farther it flies. Bat power
   scales distance, bat speed widens the timing window. Visible swing

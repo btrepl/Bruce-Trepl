@@ -23,7 +23,7 @@ baseball,slugger,homerun,pumpkin,christmas,party,arcade,funny,family,game
 ## Description
 How far can YOU hit it?
 
-Pick a slugger, step up to the plate, and smash a baseball as far as you can. Distance isn't measured in boring feet — it's measured in pumpkins, Christmas trees, or baseball cards, depending on the season you pick.
+Pick a slugger, step up to the plate, and smash a baseball as far as you can — measured in feet. Pick a season to decorate the field: Fall pumpkins on the ground, Christmas lights dangling, or a plain field.
 
 Choose from Santa, a golf-driving Trump, the Ballplayer, Bigfoot, and a funny Snowman — each with a signature bat, from a roll of gift wrap to a bare tree. Or build your own slugger and your own bat and take them to the plate.
 
@@ -32,7 +32,7 @@ Time your swing, watch it fly, and climb the global leaderboard. You get 10 free
 Features:
 • 5 hilarious sluggers with signature bats
 • Build-a-Slugger and Build-a-Bat workshops
-• 3 seasons: Fall (pumpkins), Christmas (Christmas Trees), Normal (baseball cards)
+• 3 seasons: Fall (pumpkins on the ground), Christmas (lights dangling), Normal (plain field)
 • Funny sayings for every hit — hype for moonshots, roasts for dribblers
 • Daily free swings + global leaderboard
 
