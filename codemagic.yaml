@@ -50,17 +50,18 @@ workflows:
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles
-      - name: Archive app (full output for diagnosis)
+      - name: Archive app
         script: |
           xcodebuild -project HowFarCanYouHitIt.xcodeproj \
             -scheme HowFarCanYouHitIt \
             -archivePath build/ios/xcarchive/HowFarCanYouHitIt.xcarchive \
             archive
-      - name: Build IPA
+      - name: Export IPA
         script: |
-          xcode-project build-ipa \
-            --project HowFarCanYouHitIt.xcodeproj \
-            --scheme HowFarCanYouHitIt
+          xcodebuild -exportArchive \
+            -archivePath build/ios/xcarchive/HowFarCanYouHitIt.xcarchive \
+            -exportPath build/ios/ipa \
+            -exportOptionsPlist "$HOME/export_options.plist"
       - name: Publish to TestFlight
         script: |
           app-store-connect publish \
