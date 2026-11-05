@@ -69,16 +69,29 @@ workflows:
             -scheme HowFarCanYouHitIt \
             -archivePath build/ios/xcarchive/HowFarCanYouHitIt.xcarchive \
             archive
-      - name: Show signing state
+      - name: Export IPA
         script: |
-          echo "--- export options ---"
+          echo "--- export options before ---"
           cat ~/export_options.plist || true
           echo "--- keychain identities ---"
           security find-identity -v -p codesigning || true
           echo "--- archived app signature ---"
           codesign -dv "build/ios/xcarchive/HowFarCanYouHitIt.xcarchive/Products/Applications/HowFarCanYouHitIt.app" || true
-      - name: Export IPA
-        script: |
+          IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Apple Distribution|iPhone Distribution/ {print $2; exit}')
+          echo "--- using certificate ---"
+          echo "$IDENTITY"
+          CERT_NAME="$IDENTITY" python3 <<'PYEOF'
+          import plistlib, os
+          p = os.path.expanduser('~/export_options.plist')
+          with open(p, 'rb') as f:
+              opts = plistlib.load(f)
+          opts['method'] = 'app-store-connect'
+          cert = os.environ.get('CERT_NAME') or 'Apple Distribution'
+          opts['signingCertificate'] = cert
+          with open(p, 'wb') as f:
+              plistlib.dump(opts, f)
+          print('export signingCertificate set to:', cert)
+          PYEOF
           xcodebuild -exportArchive \
             -archivePath build/ios/xcarchive/HowFarCanYouHitIt.xcarchive \
             -exportPath build/ios/ipa \
