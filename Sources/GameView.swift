@@ -1,9 +1,8 @@
 // GameView.swift
 // The field: a pitcher throws a BASEBALL, the player times a swing,
-// and the hit is measured in feet. The season only decorates the field
-// (Christmas lights, a few Fall pumpkins). No background scenery: a plain
-// backdrop, a flat ground strip, and the camera pans to follow the ball
-// as it bounces and rolls to a stop.
+// and the hit is measured in feet. The season decorates the field
+// (seasonal background scenery, Christmas lights, a few Fall pumpkins).
+// The camera pans to follow the ball as it bounces and rolls to a stop.
 
 import SwiftUI
 import UIKit
@@ -34,9 +33,8 @@ struct GameView: View {
     private let pitchDuration = 1.4
     private let sweetSpot = 0.85
 
-    /// Plain backdrop color (no scenery anywhere in the game).
-    private let backdrop = Color(red: 0.93, green: 0.96, blue: 1.0)
-    /// Flat ground strip the ball bounces on.
+    /// Flat ground strip the ball bounces on. Stays the same green in every
+    /// season so the white ball always reads against it.
     private let groundColor = Color(red: 0.42, green: 0.68, blue: 0.38)
 
     /// Where the bat handle sits, from the slugger's grip point on the
@@ -53,8 +51,8 @@ struct GameView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Plain backdrop, fixed to the screen (it never pans).
-                backdrop
+                // Seasonal background scenery, fixed to the screen (it never pans).
+                SeasonBackgroundView(season: game.season)
                     .ignoresSafeArea()
 
                 // The world: ground, pitcher, batter, ball. This pans to
@@ -622,5 +620,172 @@ struct GroundPumpkinView: View {
             Rectangle().fill(Color.green).frame(width: 4, height: 8).offset(y: -16)
         }
         .shadow(color: Color.black.opacity(0.2), radius: 2, x: 1, y: 1)
+    }
+}
+
+/// Seasonal background scenery, fixed to the screen (it never pans).
+/// Changes with the season picker: warm sky + autumn trees + falling
+/// leaves (Fall), pale sky + snowy pines + snowfall (Christmas), blue
+/// sky + green trees + sun (Normal). Kept soft and distant so the batter
+/// and the ball stay readable. The ground strip stays the same green in
+/// every season so the white ball always reads against it.
+struct SeasonBackgroundView: View {
+    let season: Season
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                // Sky gradient.
+                LinearGradient(colors: skyColors, startPoint: .top, endPoint: .bottom)
+                // Sun, soft and upper-left, out of the ball's path.
+                Circle()
+                    .fill(sunColor)
+                    .frame(width: 54, height: 54)
+                    .shadow(color: sunColor.opacity(0.5), radius: 18)
+                    .position(x: geo.size.width * 0.14, y: geo.size.height * 0.13)
+                // A few soft clouds.
+                cloud(at: CGPoint(x: geo.size.width * 0.38, y: geo.size.height * 0.10), scale: 1.0)
+                cloud(at: CGPoint(x: geo.size.width * 0.68, y: geo.size.height * 0.07), scale: 0.75)
+                cloud(at: CGPoint(x: geo.size.width * 0.88, y: geo.size.height * 0.16), scale: 0.6)
+                // Falling leaves (Fall) or snowfall (Christmas).
+                if season == .fall {
+                    fallingLeaves(in: geo)
+                } else if season == .christmas {
+                    snowfall(in: geo)
+                }
+                // Distant tree line on the horizon.
+                treeLine(in: geo)
+            }
+        }
+    }
+
+    // MARK: - Sky
+
+    private var skyColors: [Color] {
+        switch season {
+        case .fall:
+            return [Color(red: 0.98, green: 0.80, blue: 0.55),
+                    Color(red: 0.99, green: 0.88, blue: 0.68),
+                    Color(red: 0.99, green: 0.94, blue: 0.80)]
+        case .christmas:
+            return [Color(red: 0.78, green: 0.86, blue: 0.96),
+                    Color(red: 0.88, green: 0.92, blue: 0.98),
+                    Color(red: 0.96, green: 0.97, blue: 1.0)]
+        case .normal:
+            return [Color(red: 0.55, green: 0.80, blue: 0.98),
+                    Color(red: 0.75, green: 0.89, blue: 1.0),
+                    Color(red: 0.93, green: 0.96, blue: 1.0)]
+        }
+    }
+
+    private var sunColor: Color {
+        switch season {
+        case .fall: return Color(red: 1.0, green: 0.78, blue: 0.35)
+        case .christmas: return Color(red: 1.0, green: 0.97, blue: 0.85).opacity(0.85)
+        case .normal: return Color(red: 1.0, green: 0.88, blue: 0.45)
+        }
+    }
+
+    // MARK: - Clouds
+
+    private func cloud(at center: CGPoint, scale: CGFloat) -> some View {
+        ZStack {
+            Ellipse().fill(Color.white.opacity(0.9)).frame(width: 70 * scale, height: 22 * scale)
+            Ellipse().fill(Color.white.opacity(0.9)).frame(width: 44 * scale, height: 20 * scale).offset(x: -18 * scale, y: 4 * scale)
+            Ellipse().fill(Color.white.opacity(0.9)).frame(width: 40 * scale, height: 18 * scale).offset(x: 18 * scale, y: 5 * scale)
+        }
+        .position(center)
+    }
+
+    // MARK: - Falling leaves / snowfall
+
+    private func fallingLeaves(in geo: GeometryProxy) -> some View {
+        let xs: [CGFloat] = [0.08, 0.25, 0.42, 0.58, 0.74, 0.90]
+        let ys: [CGFloat] = [0.22, 0.30, 0.18, 0.34, 0.26, 0.20]
+        let leafColors: [Color] = [.orange, .red, .yellow]
+        return ZStack {
+            ForEach(0..<6, id: \.self) { i in
+                Ellipse()
+                    .fill(leafColors[i % 3].opacity(0.85))
+                    .frame(width: 10, height: 6)
+                    .rotationEffect(.degrees(Double(i * 37 % 90 - 45)))
+                    .position(x: geo.size.width * xs[i], y: geo.size.height * ys[i])
+            }
+        }
+    }
+
+    private func snowfall(in geo: GeometryProxy) -> some View {
+        ZStack {
+            ForEach(0..<14, id: \.self) { i in
+                let x = geo.size.width * CGFloat((i * 37 % 100)) / 100.0
+                let y = geo.size.height * CGFloat((i * 53 % 45)) / 100.0
+                Circle()
+                    .fill(Color.white.opacity(0.9))
+                    .frame(width: i % 3 == 0 ? 6 : 4, height: i % 3 == 0 ? 6 : 4)
+                    .position(x: x, y: y)
+            }
+        }
+    }
+
+    // MARK: - Tree line
+
+    private func treeLine(in geo: GeometryProxy) -> some View {
+        let horizon = geo.size.height - 64
+        let spots: [(x: CGFloat, h: CGFloat)] = [
+            (0.04, 52), (0.13, 40), (0.22, 58), (0.33, 44),
+            (0.45, 56), (0.57, 42), (0.68, 50), (0.93, 44)
+        ]
+        return ZStack {
+            ForEach(0..<spots.count, id: \.self) { i in
+                tree(at: CGPoint(x: geo.size.width * spots[i].x, y: horizon),
+                     height: spots[i].h)
+            }
+        }
+    }
+
+    private func tree(at base: CGPoint, height: CGFloat) -> some View {
+        ZStack {
+            if season == .christmas {
+                // Snowy pine: dark green triangle + white snow cap.
+                Triangle()
+                    .fill(Color(red: 0.20, green: 0.42, blue: 0.28))
+                    .frame(width: height * 0.75, height: height)
+                Triangle()
+                    .fill(Color.white)
+                    .frame(width: height * 0.35, height: height * 0.28)
+                    .offset(y: -height * 0.36)
+                Rectangle()
+                    .fill(Color(red: 0.45, green: 0.32, blue: 0.20))
+                    .frame(width: 5, height: 8)
+                    .offset(y: height / 2 + 2)
+            } else {
+                // Leafy tree: trunk + round canopy.
+                Rectangle()
+                    .fill(Color(red: 0.45, green: 0.32, blue: 0.20))
+                    .frame(width: 6, height: height * 0.30)
+                    .offset(y: height * 0.35)
+                Circle()
+                    .fill(canopyColor)
+                    .frame(width: height * 0.85, height: height * 0.85)
+                    .offset(y: -height * 0.18)
+                Circle()
+                    .fill(canopyColor)
+                    .frame(width: height * 0.55, height: height * 0.55)
+                    .offset(x: -height * 0.22, y: -height * 0.05)
+                Circle()
+                    .fill(canopyColor)
+                    .frame(width: height * 0.55, height: height * 0.55)
+                    .offset(x: height * 0.22, y: -height * 0.05)
+            }
+        }
+        .position(x: base.x, y: base.y - height / 2)
+    }
+
+    private var canopyColor: Color {
+        switch season {
+        case .fall: return Color(red: 0.85, green: 0.45, blue: 0.15)
+        case .christmas: return Color(red: 0.20, green: 0.42, blue: 0.28)
+        case .normal: return Color(red: 0.35, green: 0.65, blue: 0.30)
+        }
     }
 }
