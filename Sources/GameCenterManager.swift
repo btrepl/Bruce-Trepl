@@ -89,6 +89,20 @@ final class GameCenterManager: ObservableObject {
         }
     }
 
+    /// Report an achievement to Game Center (100% complete). Safe to call
+    /// when the achievement does not exist in App Store Connect yet — the
+    /// report simply does nothing, so the game never breaks.
+    func reportAchievement(_ achievement: GameAchievement) async {
+        guard isAuthenticated else { return }
+        let report = GKAchievement(identifier: achievement.rawValue)
+        report.percentComplete = 100
+        do {
+            try await GKAchievement.report([report])
+        } catch {
+            print("Achievement report failed: \(error.localizedDescription)")
+        }
+    }
+
     /// Load the friends-only and global leaderboard entries. Safe to call
     /// when not signed in — it just sets boardsError and leaves the
     /// entries empty, so the app falls back to the local board.

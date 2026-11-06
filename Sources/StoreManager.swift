@@ -7,6 +7,7 @@
 //   - Ranked Refill: 20 ranked swings for $0.99 (consumable)
 //   - Remove Ads + Unlimited Ranked:      $4.99 (non-consumable)
 //   - Coin bundles: 1,000 coins $0.99, 5,000 coins $2.99 (consumable)
+//   - Premium season pass: $4.99 (non-consumable)
 //   - Rewarded ads (watch an ad for extra ranked swings) arrive in a later
 //     build; Remove Ads turns those off too.
 //
@@ -21,6 +22,7 @@
 //        com.tntfamily.howfar.removeads     (non-consumable, $4.99)
 //        com.tntfamily.howfar.coins1000     (consumable, $0.99)
 //        com.tntfamily.howfar.coins5000     (consumable, $2.99)
+//        com.tntfamily.howfar.seasonpass    (non-consumable, $4.99)
 //   2. Set the app price tier to Free in App Store Connect.
 //   3. Test in the sandbox / TestFlight before submitting.
 //   4. Enroll in the App Store Small Business Program (15% commission).
@@ -40,12 +42,14 @@ final class StoreManager: ObservableObject {
     static let removeAdsID = "com.tntfamily.howfar.removeads"
     static let coins1000ID = "com.tntfamily.howfar.coins1000"
     static let coins5000ID = "com.tntfamily.howfar.coins5000"
+    static let seasonPassID = "com.tntfamily.howfar.seasonpass"
 
     // MARK: - State
 
     @Published private(set) var customSluggerUnlocked = false
     @Published private(set) var customBatUnlocked = false
     @Published private(set) var removeAdsUnlocked = false
+    @Published private(set) var seasonPassOwned = false
     @Published private(set) var isPurchasing = false
     @Published private(set) var lastError: String?
 
@@ -59,6 +63,7 @@ final class StoreManager: ObservableObject {
         customSluggerUnlocked = defaults.bool(forKey: "hfUnlockSlugger")
         customBatUnlocked = defaults.bool(forKey: "hfUnlockBat")
         removeAdsUnlocked = defaults.bool(forKey: "hfUnlockRemoveAds")
+        seasonPassOwned = defaults.bool(forKey: "hfUnlockSeasonPass")
     }
 
     // MARK: - Public purchase API (used by the views)
@@ -97,6 +102,16 @@ final class StoreManager: ObservableObject {
     /// Buy 5,000 coins ($2.99). Returns true on success.
     func purchaseCoins5000() async -> Bool {
         await purchase(productID: Self.coins5000ID)
+    }
+
+    /// Buy the premium season pass ($4.99). Returns true on success.
+    func purchaseSeasonPass() async -> Bool {
+        let ok = await purchase(productID: Self.seasonPassID)
+        if ok {
+            seasonPassOwned = true
+            defaults.set(true, forKey: "hfUnlockSeasonPass")
+        }
+        return ok
     }
 
     /// Remove Ads + Unlimited Ranked ($4.99). Returns true on success.
@@ -178,6 +193,9 @@ final class StoreManager: ObservableObject {
         case Self.removeAdsID:
             removeAdsUnlocked = true
             defaults.set(true, forKey: "hfUnlockRemoveAds")
+        case Self.seasonPassID:
+            seasonPassOwned = true
+            defaults.set(true, forKey: "hfUnlockSeasonPass")
         default:
             break
         }

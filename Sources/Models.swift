@@ -440,4 +440,5 @@ enum Screen {
     case buildBat
     case game
     case leaderboard
+    case seasonPass
 }

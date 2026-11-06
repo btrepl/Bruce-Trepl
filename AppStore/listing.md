@@ -19,6 +19,7 @@ Free (free-to-play with in-app purchases)
 - Remove Ads + Unlimited Ranked — $4.99
 - 1,000 Coins — $0.99
 - 5,000 Coins — $2.99
+- Premium Season Pass — $4.99
 
 ## Keywords (max 100 characters)
 baseball,slugger,homerun,pumpkin,christmas,party,arcade,funny,family,game
@@ -40,6 +41,8 @@ Features:
 • Unlimited practice swings + 10 ranked swings a day + leaderboard
 • Friends leaderboard — see how your friends did, and challenge them to beat your best hit
 • Coins and bat upgrades — ranked hits earn coins; spend them to upgrade custom bats up to +10% power. Signature bats carry their own power boost (Wooden Club +10%, Scepter +8%, Machete +6%, Classic Bat +5%, Ice Club +4%, Gift Wrap +3%)
+• Season pass — earn XP from ranked hits, climb 10 levels, claim coins on the free track or unlock the $4.99 premium track for more coins and a Golden Bat
+• Daily rewards and quests — claim a daily gift (streaks pay more) and finish 3 quests a day for bonus coins
 
 ## Age rating (estimate)
 9+ — cartoon humor, mild language in the roast sayings, no realistic violence. Final rating comes from Apple's questionnaire in App Store Connect.

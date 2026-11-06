@@ -18,9 +18,14 @@ struct ContentView: View {
             case .buildBat: BuildBatView()
             case .game: GameView()
             case .leaderboard: LeaderboardView()
+            case .seasonPass: SeasonPassView()
             }
         }
-        .onAppear { game.resetRankedIfNeeded() }
+        .onAppear {
+            game.resetRankedIfNeeded()
+            game.refreshDailyReward()
+            game.resetQuestsIfNeeded()
+        }
     }
 }
 
@@ -144,8 +149,71 @@ struct HomeView: View {
                     MenuButton(title: "Pick Your Season", systemImage: "leaf.fill") {
                         game.screen = .seasons
                     }
+                    MenuButton(title: "Season Pass", systemImage: "ticket.fill") {
+                        game.screen = .seasonPass
+                    }
                     MenuButton(title: "Leaderboard", systemImage: "trophy.fill") {
                         game.screen = .leaderboard
+                    }
+                }
+
+                // Daily reward: claim once a day, streak climbs.
+                if game.dailyRewardAvailable {
+                    Button {
+                        _ = game.claimDailyReward()
+                    } label: {
+                        Label("Claim daily reward — Day \(game.dailyStreak + 1) · \(DailyReward.coins(for: game.dailyStreak + 1)) coins\(DailyReward.rankedSwings(for: game.dailyStreak + 1) > 0 ? " + \(DailyReward.rankedSwings(for: game.dailyStreak + 1)) ranked swings" : "")", systemImage: "gift.fill")
+                            .font(.subheadline).bold()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.orange)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(12)
+                    }
+                } else {
+                    Label("Daily reward claimed — streak: \(game.dailyStreak) day\(game.dailyStreak == 1 ? "" : "s")", systemImage: "gift.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                // Today's quests
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Today's Quests").bold()
+                    ForEach(game.quests) { quest in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(quest.title).bold()
+                                    .font(.subheadline)
+                                Text("\(quest.detail) — \(min(quest.progress, quest.target))/\(quest.target)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if quest.claimed {
+                                Text("Claimed")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            } else if quest.isComplete {
+                                Button {
+                                    _ = game.claimQuest(quest)
+                                } label: {
+                                    Text("Claim \(quest.coinReward) coins")
+                                        .font(.caption).bold()
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(Color.green)
+                                        .foregroundStyle(Color.white)
+                                        .cornerRadius(8)
+                                }
+                            } else {
+                                Text("\(quest.coinReward) coins")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(10)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(10)
                     }
                 }
 
@@ -241,6 +309,7 @@ struct MenuButton: View {
 struct CharacterSelectView: View {
     @EnvironmentObject var game: GameState
     @EnvironmentObject var store: StoreManager
+    @EnvironmentObject var gameCenter: GameCenterManager
 
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -382,7 +451,13 @@ struct CharacterSelectView: View {
                                 if bat.upgradeLevel < Bat.maxUpgradeLevel {
                                     let cost = Bat.upgradeCost(for: bat.upgradeLevel)
                                     Button {
-                                        _ = game.upgradeBat(bat)
+                                        if game.upgradeBat(bat) {
+                                            // Maxed-out achievement (Game Center).
+                                            if let upgraded = game.customBats.first(where: { $0.id == bat.id }),
+                                               upgraded.upgradeLevel >= Bat.maxUpgradeLevel {
+                                                Task { await gameCenter.reportAchievement(.maxBat) }
+                                            }
+                                        }
                                     } label: {
                                         Text("Upgrade to +\(bat.powerBoostPercent + 2)% — \(cost) coins")
                                             .font(.caption).bold()
@@ -519,6 +594,7 @@ struct LeaderboardView: View {
 
     @State private var tab: BoardTab = .friends
     @State private var showDashboard = false
+    @State private var localWeekOnly = false
 
     var body: some View {
         ScrollView {
@@ -642,12 +718,24 @@ struct LeaderboardView: View {
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
 
-        if game.leaderboard.isEmpty {
-            Text("No hits yet. Take a swing and set the first score!")
+        // Weekly board: only hits from the current calendar week
+        // (Monday–Sunday). The board resets every Monday.
+        Picker("Local range", selection: $localWeekOnly) {
+            Text("All Time").tag(false)
+            Text("This Week").tag(true)
+        }
+        .pickerStyle(.segmented)
+
+        let shown = localWeekOnly
+            ? game.leaderboard.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear) }
+            : game.leaderboard
+
+        if shown.isEmpty {
+            Text(localWeekOnly ? "No hits this week yet. Take a swing!" : "No hits yet. Take a swing and set the first score!")
                 .foregroundStyle(.secondary)
                 .padding(.top, 40)
         } else {
-            ForEach(Array(game.leaderboard.enumerated()), id: \.element.id) { index, entry in
+            ForEach(Array(shown.enumerated()), id: \.element.id) { index, entry in
                 HStack {
                     Text("#\(index + 1)").bold().frame(width: 40, alignment: .leading)
                     VStack(alignment: .leading, spacing: 2) {
@@ -697,6 +785,124 @@ struct LeaderboardView: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Season pass
+
+/// The season pass: 10 levels, 150 XP each, earned from ranked hits.
+/// Free track pays coins; the premium track ($4.99) pays more coins plus
+/// a Golden Bat at level 10. Themed to the player's selected season.
+struct SeasonPassView: View {
+    @EnvironmentObject var game: GameState
+    @EnvironmentObject var store: StoreManager
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                HeaderBar(title: "Season Pass — \(game.season.title)") { game.screen = .home }
+
+                // Progress header
+                VStack(spacing: 6) {
+                    Text("Level \(game.passLevel) of \(SeasonPass.levels.count)")
+                        .font(.title3).bold()
+                    ProgressView(value: Double(game.passXPIntoLevel), total: Double(SeasonPass.xpPerLevel))
+                    Text("\(game.passXPIntoLevel) / \(SeasonPass.xpPerLevel) XP to the next level · \(game.seasonXP) total XP")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Earn XP from ranked hits: 10 per swing + 1 per 10 feet.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(16)
+
+                // Premium unlock
+                if game.premiumPassOwned {
+                    Label("Premium pass owned", systemImage: "checkmark.seal.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button {
+                        Task {
+                            if await store.purchaseSeasonPass() {
+                                game.setPremiumPassOwned(true)
+                            }
+                        }
+                    } label: {
+                        Text(store.isPurchasing ? "Working…" : "Unlock Premium Pass — $4.99")
+                            .font(.subheadline).bold()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.purple)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(12)
+                    }
+                    .disabled(store.isPurchasing)
+                }
+
+                // The 10 levels
+                ForEach(SeasonPass.levels) { row in
+                    let reached = row.level <= game.passLevel
+                    let freeClaimed = game.claimedFreeRewards.contains(row.level)
+                    let premiumClaimed = game.claimedPremiumRewards.contains(row.level)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Level \(row.level)")
+                            .bold()
+                        HStack(spacing: 10) {
+                            // Free track
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("FREE")
+                                    .font(.caption2).bold()
+                                    .foregroundStyle(.secondary)
+                                Text("\(row.freeCoins) coins")
+                                    .font(.subheadline)
+                                Button {
+                                    _ = game.claimFreeReward(level: row.level)
+                                } label: {
+                                    Text(freeClaimed ? "Claimed" : "Claim")
+                                        .font(.caption).bold()
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(reached && !freeClaimed ? Color.green : Color.gray.opacity(0.3))
+                                        .foregroundStyle(reached && !freeClaimed ? Color.white : Color.secondary)
+                                        .cornerRadius(8)
+                                }
+                                .disabled(!reached || freeClaimed)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            // Premium track
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("PREMIUM")
+                                    .font(.caption2).bold()
+                                    .foregroundStyle(Color.purple)
+                                Text("\(row.premiumCoins) coins\(row.premiumBonus.map { " + \($0)" } ?? "")")
+                                    .font(.subheadline)
+                                Button {
+                                    _ = game.claimPremiumReward(level: row.level)
+                                } label: {
+                                    Text(premiumClaimed ? "Claimed" : (game.premiumPassOwned ? "Claim" : "Premium"))
+                                        .font(.caption).bold()
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(reached && game.premiumPassOwned && !premiumClaimed ? Color.purple : Color.gray.opacity(0.3))
+                                        .foregroundStyle(reached && game.premiumPassOwned && !premiumClaimed ? Color.white : Color.secondary)
+                                        .cornerRadius(8)
+                                }
+                                .disabled(!reached || !game.premiumPassOwned || premiumClaimed)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .padding()
+                    .background(reached ? Color.blue.opacity(0.08) : Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                }
+                Spacer(minLength: 20)
+            }
+            .padding(.horizontal)
+        }
     }
 }
 

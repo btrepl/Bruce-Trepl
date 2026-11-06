@@ -26,6 +26,7 @@ struct HowFarCanYouHitItApp: App {
                     Task {
                         await store.restorePurchases()
                         gameState.setRemoveAdsUnlocked(store.removeAdsUnlocked)
+                        gameState.setPremiumPassOwned(store.seasonPassOwned)
                     }
                 }
         }

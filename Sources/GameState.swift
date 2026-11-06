@@ -33,6 +33,26 @@ final class GameState: ObservableObject {
     @Published var lifetimeBest: Int = 0
     @Published var coins: Int = 0
 
+    // MARK: - Daily rewards, quests, season pass, achievements
+
+    /// Consecutive days the daily reward was claimed.
+    @Published var dailyStreak: Int = 0
+    /// True when today's daily reward is still unclaimed.
+    @Published var dailyRewardAvailable: Bool = true
+    /// Today's three quests (reset every day).
+    @Published var quests: [Quest] = Quest.Kind.allCases.map { Quest(kind: $0) }
+    /// Total Season XP earned (ranked hits only).
+    @Published var seasonXP: Int = 0
+    /// Free-track pass rewards already claimed, by level.
+    @Published var claimedFreeRewards: Set<Int> = []
+    /// Premium-track pass rewards already claimed, by level.
+    @Published var claimedPremiumRewards: Set<Int> = []
+    /// True when the premium season pass ($4.99) is owned.
+    @Published var premiumPassOwned: Bool = false
+    /// Lifetime totals for achievements.
+    @Published var totalCoinsEarned: Int = 0
+    @Published var totalRankedSwings: Int = 0
+
     // MARK: - Persistence keys
 
     private enum Keys {
@@ -45,6 +65,16 @@ final class GameState: ObservableObject {
         static let customSlugger = "hf CustomSlugger"
         static let customBats = "hf CustomBats"
         static let coins = "hf Coins"
+        static let dailyClaimDate = "hf DailyClaimDate"
+        static let dailyStreak = "hf DailyStreak"
+        static let quests = "hf Quests"
+        static let questsDate = "hf QuestsDate"
+        static let seasonXP = "hf SeasonXP"
+        static let claimedFree = "hf ClaimedFree"
+        static let claimedPremium = "hf ClaimedPremium"
+        static let premiumPass = "hf PremiumPass"
+        static let totalCoinsEarned = "hf TotalCoinsEarned"
+        static let totalRankedSwings = "hf TotalRankedSwings"
         static let season = "hf Season"
         static let sluggerID = "hf SluggerID"
     }
@@ -126,7 +156,9 @@ final class GameState: ObservableObject {
     func earnCoins(_ amount: Int) {
         guard amount > 0 else { return }
         coins += amount
+        totalCoinsEarned += amount
         defaults.set(coins, forKey: Keys.coins)
+        defaults.set(totalCoinsEarned, forKey: Keys.totalCoinsEarned)
     }
 
     /// Spend coins. Returns false when the player cannot afford it.
@@ -136,6 +168,142 @@ final class GameState: ObservableObject {
         coins -= amount
         defaults.set(coins, forKey: Keys.coins)
         return true
+    }
+
+    // MARK: - Daily rewards
+
+    /// Refresh the daily-reward state for today. Call on launch and when
+    /// Home appears. The streak survives only on consecutive days.
+    func refreshDailyReward() {
+        let today = Calendar.current.startOfDay(for: Date())
+        let last = defaults.object(forKey: Keys.dailyClaimDate) as? Date
+        if let last {
+            if Calendar.current.isDate(last, inSameDayAs: today) {
+                dailyRewardAvailable = false
+                return
+            }
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+            if Calendar.current.isDate(last, inSameDayAs: yesterday) {
+                // Streak continues; it is claimed below, not here.
+            } else {
+                dailyStreak = 0
+                defaults.set(0, forKey: Keys.dailyStreak)
+            }
+        }
+        dailyRewardAvailable = true
+    }
+
+    /// Claim today's daily reward. Returns the coins (and ranked swings)
+    /// granted, or nil when it was already claimed today.
+    @discardableResult
+    func claimDailyReward() -> (coins: Int, rankedSwings: Int)? {
+        guard dailyRewardAvailable else { return nil }
+        let today = Calendar.current.startOfDay(for: Date())
+        dailyStreak += 1
+        let coins = DailyReward.coins(for: dailyStreak)
+        let swings = DailyReward.rankedSwings(for: dailyStreak)
+        earnCoins(coins)
+        if swings > 0 { addRankedSwings(swings) }
+        dailyRewardAvailable = false
+        defaults.set(today, forKey: Keys.dailyClaimDate)
+        defaults.set(dailyStreak, forKey: Keys.dailyStreak)
+        return (coins, swings)
+    }
+
+    // MARK: - Daily quests
+
+    /// Reset quests when the calendar day changes. Call on launch and
+    /// when Home appears.
+    func resetQuestsIfNeeded() {
+        let today = Calendar.current.startOfDay(for: Date())
+        let stored = defaults.object(forKey: Keys.questsDate) as? Date ?? .distantPast
+        if !Calendar.current.isDate(stored, inSameDayAs: today) {
+            quests = Quest.Kind.allCases.map { Quest(kind: $0) }
+            defaults.set(today, forKey: Keys.questsDate)
+            persistQuests()
+        }
+    }
+
+    /// Advance quest progress from one ranked swing. Call after every
+    /// ranked swing with the hit distance (0 for a whiff).
+    func advanceQuests(distance: Int) {
+        totalRankedSwings += 1
+        defaults.set(totalRankedSwings, forKey: Keys.totalRankedSwings)
+        for i in quests.indices {
+            switch quests[i].kind {
+            case .longBall:
+                if distance >= 300 { quests[i].progress = max(quests[i].progress, 1) }
+            case .consistent:
+                if distance >= 200 { quests[i].progress += 1 }
+            case .grinder:
+                quests[i].progress += 1
+            }
+        }
+        persistQuests()
+    }
+
+    /// Claim a completed quest's coin reward. Returns the coins, or nil
+    /// when the quest is not complete or was already claimed.
+    @discardableResult
+    func claimQuest(_ quest: Quest) -> Int? {
+        guard let index = quests.firstIndex(where: { $0.kind == quest.kind }) else { return nil }
+        guard quests[index].isComplete, !quests[index].claimed else { return nil }
+        quests[index].claimed = true
+        persistQuests()
+        earnCoins(quests[index].coinReward)
+        return quests[index].coinReward
+    }
+
+    private func persistQuests() {
+        if let data = try? JSONEncoder().encode(quests) {
+            defaults.set(data, forKey: Keys.quests)
+        }
+    }
+
+    // MARK: - Season pass
+
+    /// Current pass level (0...10) from total Season XP.
+    var passLevel: Int { SeasonPass.level(for: seasonXP) }
+
+    /// XP progress within the current level (0..<150).
+    var passXPIntoLevel: Int { SeasonPass.xpIntoLevel(for: seasonXP) }
+
+    /// Add Season XP from a ranked hit.
+    func addSeasonXP(_ amount: Int) {
+        guard amount > 0 else { return }
+        seasonXP += amount
+        defaults.set(seasonXP, forKey: Keys.seasonXP)
+    }
+
+    /// Claim a free-track reward for a reached level. Returns the coins,
+    /// or nil when the level is not reached or was already claimed.
+    @discardableResult
+    func claimFreeReward(level: Int) -> Int? {
+        guard level <= passLevel, !claimedFreeRewards.contains(level) else { return nil }
+        guard let row = SeasonPass.levels.first(where: { $0.level == level }) else { return nil }
+        claimedFreeRewards.insert(level)
+        defaults.set(Array(claimedFreeRewards), forKey: Keys.claimedFree)
+        earnCoins(row.freeCoins)
+        return row.freeCoins
+    }
+
+    /// Claim a premium-track reward. Requires the premium pass.
+    /// Returns the coins (the Golden Bat at level 10 is noted in the UI).
+    @discardableResult
+    func claimPremiumReward(level: Int) -> Int? {
+        guard premiumPassOwned else { return nil }
+        guard level <= passLevel, !claimedPremiumRewards.contains(level) else { return nil }
+        guard let row = SeasonPass.levels.first(where: { $0.level == level }) else { return nil }
+        claimedPremiumRewards.insert(level)
+        defaults.set(Array(claimedPremiumRewards), forKey: Keys.claimedPremium)
+        earnCoins(row.premiumCoins)
+        return row.premiumCoins
+    }
+
+    /// Mark the premium season pass as owned (synced from the store).
+    func setPremiumPassOwned(_ value: Bool) {
+        premiumPassOwned = value
+        defaults.set(value, forKey: Keys.premiumPass)
     }
 
     // MARK: - Bat upgrades
@@ -221,6 +389,21 @@ final class GameState: ObservableObject {
         unlimitedSwings = defaults.bool(forKey: Keys.unlimitedSwings)
         removeAdsUnlocked = defaults.bool(forKey: Keys.removeAds)
         coins = defaults.object(forKey: Keys.coins) as? Int ?? 0
+        dailyStreak = defaults.object(forKey: Keys.dailyStreak) as? Int ?? 0
+        seasonXP = defaults.object(forKey: Keys.seasonXP) as? Int ?? 0
+        premiumPassOwned = defaults.bool(forKey: Keys.premiumPass)
+        totalCoinsEarned = defaults.object(forKey: Keys.totalCoinsEarned) as? Int ?? 0
+        totalRankedSwings = defaults.object(forKey: Keys.totalRankedSwings) as? Int ?? 0
+        if let free = defaults.array(forKey: Keys.claimedFree) as? [Int] {
+            claimedFreeRewards = Set(free)
+        }
+        if let premium = defaults.array(forKey: Keys.claimedPremium) as? [Int] {
+            claimedPremiumRewards = Set(premium)
+        }
+        if let data = defaults.data(forKey: Keys.quests),
+           let decoded = try? JSONDecoder().decode([Quest].self, from: data) {
+            quests = decoded
+        }
         lifetimeBest = defaults.object(forKey: Keys.lifetimeBest) as? Int ?? 0
 
         if let data = defaults.data(forKey: Keys.leaderboard),

@@ -352,6 +352,19 @@ struct GameView: View {
             isNewBest = false
             coinsEarned = 0
         }
+        // Ranked swings (hit or whiff) advance quests, Season XP, and
+        // achievements. Practice does not.
+        if game.mode == .ranked {
+            game.advanceQuests(distance: distance)
+            game.addSeasonXP(SeasonPass.xpForHit(distance: distance))
+            Task {
+                await gameCenter.reportAchievement(.firstHit)
+                if distance >= 300 { await gameCenter.reportAchievement(.hit300) }
+                if distance >= 400 { await gameCenter.reportAchievement(.hit400) }
+                if game.totalRankedSwings >= 100 { await gameCenter.reportAchievement(.swings100) }
+                if game.totalCoinsEarned >= 1000 { await gameCenter.reportAchievement(.coins1000) }
+            }
+        }
         // Flight plan: bigger hits fly farther. The ball stays up in one
         // long arc, then bounces once or twice and stops.
         flightDistance = distance > 0 ? 260 + CGFloat(distance) * 3.2 : 150
