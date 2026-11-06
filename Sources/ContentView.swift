@@ -160,7 +160,7 @@ struct HomeView: View {
                     }
                     // Rewarded ad: watch once for +5 ranked swings. Hidden
                     // when Remove Ads is owned (ads are off for that player).
-                    if !store.removeAdsUnlocked {
+                    if AdsManager.adsEnabled && !store.removeAdsUnlocked {
                         Button {
                             ads.showRewardedAd {
                                 game.addRankedSwings(5)

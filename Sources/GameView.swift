@@ -362,7 +362,7 @@ struct GameView: View {
                             .foregroundStyle(Color.white)
                             .cornerRadius(16)
                     }
-                    if !store.removeAdsUnlocked {
+                    if AdsManager.adsEnabled && !store.removeAdsUnlocked {
                         Button {
                             ads.showRewardedAd {
                                 game.addRankedSwings(5)
@@ -681,7 +681,7 @@ struct GameView: View {
                         .foregroundStyle(Color.white)
                         .cornerRadius(14)
                 }
-                if !store.removeAdsUnlocked {
+                if AdsManager.adsEnabled && !store.removeAdsUnlocked {
                     Button {
                         ads.showRewardedAd {
                             game.addRankedSwings(5)

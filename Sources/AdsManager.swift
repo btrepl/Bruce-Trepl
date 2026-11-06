@@ -22,6 +22,16 @@ import UIKit
 
 @MainActor
 final class AdsManager: NSObject, ObservableObject {
+    /// ADS ARE OFF (build 26). The AdMob SDK crashes on launch
+    /// (GADApplicationVerifyPublisherInitializedCorrectly / SIGABRT) because
+    /// the built app's Info.plist has no GADApplicationIdentifier, even
+    /// though INFOPLIST_KEY_GADApplicationIdentifier is set in the Xcode
+    /// project — the key is not landing in the archived plist. Until that
+    /// is fixed properly (explicit Info.plist), the SDK must not be
+    /// initialized at all: any AdMob call aborts the app. When the plist
+    /// is fixed, flip this to true and the Watch Ad buttons come back.
+    static let adsEnabled = false
+
     /// Google's official test rewarded ad unit ID (iOS). Replace with the
     /// real AdMob ad unit ID before submitting for real revenue.
     static let rewardedAdUnitID = "ca-app-pub-3940256099942544/1712485313"
@@ -35,13 +45,17 @@ final class AdsManager: NSObject, ObservableObject {
     private var rewardHandler: (() -> Void)?
 
     /// Start the AdMob SDK and preload the first rewarded ad.
+    /// No-op while ads are disabled (see adsEnabled above).
     func start() {
+        guard Self.adsEnabled else { return }
         GADMobileAds.sharedInstance().start(completionHandler: nil)
         loadRewardedAd()
     }
 
     /// Preload a rewarded ad. Called at start and after each ad dismisses.
+    /// No-op while ads are disabled.
     func loadRewardedAd() {
+        guard Self.adsEnabled else { return }
         GADRewardedAd.load(withAdUnitID: Self.rewardedAdUnitID, request: GADRequest()) { [weak self] ad, error in
             // The load callback is a Sendable closure, so hop back to the
             // main actor before touching this manager's state.
@@ -61,8 +75,9 @@ final class AdsManager: NSObject, ObservableObject {
 
     /// Show a rewarded ad. When the player earns the reward, `onReward`
     /// runs (the caller grants +5 ranked swings). Does nothing when no
-    /// ad is loaded or one is already showing.
+    /// ad is loaded or one is already showing. No-op while ads are disabled.
     func showRewardedAd(onReward: @escaping () -> Void) {
+        guard Self.adsEnabled else { return }
         guard let ad = rewardedAd, !isShowingAd else { return }
         guard let root = rootViewController() else { return }
         rewardHandler = onReward
