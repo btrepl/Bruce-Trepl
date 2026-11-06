@@ -2,7 +2,8 @@
 // The field: a pitcher throws a BASEBALL, the player times a swing,
 // and the hit is measured in feet. The season decorates the field
 // (seasonal background scenery, Christmas lights, a few Fall pumpkins).
-// The camera pans to follow the ball as it bounces and rolls to a stop.
+// The camera pans to follow the ball as it arcs through the air,
+// bounces once or twice, and stops.
 
 import SwiftUI
 import UIKit
@@ -151,20 +152,27 @@ struct GameView: View {
     // MARK: - Ball flight + camera
 
     /// Where the ball is in world coordinates at a given moment of the
-    /// flight. The ball arcs up off the bat, descends to the ground, then
-    /// bounces in shrinking hops and rolls to a stop.
+    /// flight. One big arc in the air (most of the flight), then a bounce
+    /// or two, then it stops — no long rolling. The first hump of the sine
+    /// is stretched by squaring p, so the ball stays up for ~60% of the
+    /// flight before it lands.
     private func flightPosition(elapsed: TimeInterval, geo: GeometryProxy) -> CGPoint {
         let p = CGFloat(min(max(elapsed / flightDuration, 0), 1))
-        let ease = 1 - pow(1 - p, 3)  // decelerating: fast off the bat, rolling stop
         let plateX = geo.size.width - 195
         let contactY = geo.size.height - 140
         let groundY = geo.size.height - 79
+        // Horizontal: cover most of the distance while airborne, then
+        // decelerate hard after landing so the ball stops, not rolls.
+        let ease = 1 - pow(1 - p, 4)
         let x = plateX - flightDistance * ease
         // Baseline sinks from contact height to the ground as it travels.
         let baseY = contactY + (groundY - contactY) * p * p
-        let hops: CGFloat = finalDistance > 0 ? 3 + min(CGFloat(finalDistance) / 120, 3) : 1
-        let amp: CGFloat = finalDistance > 0 ? 50 + min(CGFloat(finalDistance), 400) * 0.25 : 10
-        let hop = amp * (1 - p) * abs(sin(p * hops * .pi))
+        // Three humps: one long arc, then two short bounces. Squaring p
+        // stretches the first hump to ~58% of the flight.
+        let hops: CGFloat = finalDistance > 0 ? 3 : 1
+        let q = p * p
+        let amp: CGFloat = finalDistance > 0 ? 60 + min(CGFloat(finalDistance), 400) * 0.30 : 10
+        let hop = amp * (1 - p) * abs(sin(q * hops * .pi))
         return CGPoint(x: x, y: baseY - hop)
     }
 
@@ -335,9 +343,10 @@ struct GameView: View {
         } else {
             isNewBest = false
         }
-        // Flight plan: bigger hits fly farther and bounce longer.
+        // Flight plan: bigger hits fly farther. The ball stays up in one
+        // long arc, then bounces once or twice and stops.
         flightDistance = distance > 0 ? 260 + CGFloat(distance) * 3.2 : 150
-        flightDuration = distance > 0 ? 2.6 : 1.3
+        flightDuration = distance > 0 ? 3.0 : 1.3
 
         // Full-body swing, slow enough to actually see: wind up (lean back,
         // bat cocks), whip through (whole figure twists, bat sweeps down
