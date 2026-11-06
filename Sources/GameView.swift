@@ -34,8 +34,41 @@ struct GameView: View {
     @State private var shareImage: UIImage?
     @State private var coinsEarned = 0
 
+    // Multi-pitch modes (Derby / Timing Streak / Pitch Challenge).
+    @State private var pitchesLeft = 1
+    @State private var derbyTotal = 0
+    @State private var derbyBest = 0
+    @State private var streak = 0
+    @State private var bestStreak = 0
+    @State private var pitchType: PitchType = .fastball
+    @State private var lastPerfect = false
+
     private let pitchDuration = 1.4
     private let sweetSpot = 0.85
+
+    /// Pitch travel time: in Pitch Challenge mode each pitch type has its
+    /// own speed; otherwise the standard 1.4s.
+    private var currentPitchDuration: Double {
+        game.playMode == .pitchChallenge ? pitchType.travelTime : pitchDuration
+    }
+
+    /// Reset the multi-pitch state for a new game. Called when the game
+    /// screen appears and when the player starts a fresh game.
+    private func startGame() {
+        pitchesLeft = game.playMode.pitchCount
+        derbyTotal = 0
+        derbyBest = 0
+        streak = 0
+        bestStreak = 0
+        lastPerfect = false
+        pitchType = PitchType.allCases.randomElement() ?? .fastball
+        phase = .idle
+    }
+
+    /// True when the current game is over (all pitches used).
+    private var gameOver: Bool {
+        game.playMode == .classic || pitchesLeft <= 0
+    }
 
     /// Flat ground strip the ball bounces on. Stays the same green in every
     /// season so the white ball always reads against it.
@@ -130,6 +163,30 @@ struct GameView: View {
                         Label(game.mode == .practice ? "Practice" : (game.rankedUnlimited ? "Ranked · Unlimited" : "Ranked · \(game.rankedLeft) left"), systemImage: "bolt.fill")
                             .font(.subheadline)
                     }
+                    // Mode + pitch status for the 10-pitch modes.
+                    if game.playMode != .classic {
+                        HStack {
+                            Text(game.playMode.title)
+                                .font(.subheadline).bold()
+                            Spacer()
+                            if game.playMode == .pitchChallenge && phase == .pitching {
+                                Text(pitchType.title)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.orange)
+                            }
+                            if game.playMode == .derby {
+                                Text("Total: \(derbyTotal) ft")
+                                    .font(.subheadline)
+                            }
+                            if game.playMode == .streak {
+                                Text("Streak: \(streak)")
+                                    .font(.subheadline)
+                            }
+                            Text("Pitch \(game.playMode.pitchCount - pitchesLeft + 1) of \(game.playMode.pitchCount)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     // Christmas lights dangling from the top (season decor).
                     if game.season == .christmas {
                         ChristmasLightsView()
@@ -149,7 +206,10 @@ struct GameView: View {
                 }
             }
         }
-        .onAppear { game.resetRankedIfNeeded() }
+        .onAppear {
+            game.resetRankedIfNeeded()
+            startGame()
+        }
     }
 
     // MARK: - Ball flight + camera
@@ -204,7 +264,7 @@ struct GameView: View {
                 .position(x: plateX, y: ballY)
         case .pitching:
             let elapsed = date.timeIntervalSince(pitchStart)
-            let progress = min(max(elapsed / pitchDuration, 0), 1)
+            let progress = min(max(elapsed / currentPitchDuration, 0), 1)
             let x = 108 + (plateX - 108) * progress
             let y = ballY - sin(progress * .pi) * 26
             BaseballView()
@@ -213,7 +273,21 @@ struct GameView: View {
             if progress >= 1 {
                 Color.clear.onAppear {
                     DispatchQueue.main.async {
-                        if phase == .pitching { phase = .tookPitch }
+                        if phase == .pitching {
+                            // Taking a pitch counts as a pitch used in the
+                            // 10-pitch modes, and it breaks a timing streak.
+                            if game.playMode != .classic {
+                                pitchesLeft -= 1
+                                streak = 0
+                                if game.playMode == .pitchChallenge {
+                                    pitchType = PitchType.allCases.randomElement() ?? .fastball
+                                }
+                                if gameOver && game.mode == .ranked {
+                                    recordModeResult()
+                                }
+                            }
+                            phase = .tookPitch
+                        }
                     }
                 }
             }
@@ -331,7 +405,7 @@ struct GameView: View {
 
     private func swingNow() {
         guard phase == .pitching else { return }
-        let progress = min(Date().timeIntervalSince(pitchStart) / pitchDuration, 1)
+        let progress = min(Date().timeIntervalSince(pitchStart) / currentPitchDuration, 1)
         guard progress < 1 else {
             phase = .tookPitch
             return
@@ -341,7 +415,12 @@ struct GameView: View {
         let window = 0.30 + Double(game.bat.speed) * 0.01
         let quality = max(0, 1 - abs(progress - sweetSpot) / window)
 
-        game.useSwing()
+        // A ranked swing is consumed once per pitch in Classic, but only
+        // once per GAME in the 10-pitch modes (the whole game costs 1).
+        let isFirstPitch = pitchesLeft == game.playMode.pitchCount
+        if game.playMode == .classic || isFirstPitch {
+            game.useSwing()
+        }
 
         phase = .swinging
 
@@ -358,16 +437,38 @@ struct GameView: View {
         finalDistance = distance
         tier = HitTier.tier(for: distance, swung: true)
         saying = Sayings.random(for: tier)
-        // Only Ranked hits count for the leaderboard and Game Center, and
-        // only Ranked hits earn coins. Practice is just for fun.
+
+        // Multi-pitch bookkeeping.
+        pitchesLeft -= 1
+        let perfect = distance > 0 && abs(progress - sweetSpot) <= 0.03
+        lastPerfect = perfect
+        switch game.playMode {
+        case .derby:
+            derbyTotal += distance
+            derbyBest = max(derbyBest, distance)
+        case .streak:
+            if perfect {
+                streak += 1
+                bestStreak = max(bestStreak, streak)
+            } else {
+                streak = 0
+            }
+        case .pitchChallenge:
+            pitchType = PitchType.allCases.randomElement() ?? .fastball
+        case .classic:
+            break
+        }
+
+        // Coins are earned per hit in Ranked (practice earns nothing).
+        // The leaderboard gets only the mode's final score (see
+        // recordModeResult), not every pitch.
         if distance > 0 && game.mode == .ranked {
-            isNewBest = game.recordHit(distance: distance)
             coinsEarned = game.coinsForHit(distance: distance)
             game.earnCoins(coinsEarned)
-            Task { await gameCenter.submitScore(distance) }
-        } else {
             isNewBest = false
+        } else {
             coinsEarned = 0
+            isNewBest = false
         }
         // Ranked swings (hit or whiff) advance quests, Season XP, and
         // achievements. Practice does not.
@@ -381,6 +482,10 @@ struct GameView: View {
                 if game.totalRankedSwings >= 100 { await gameCenter.reportAchievement(.swings100) }
                 if game.totalCoinsEarned >= 1000 { await gameCenter.reportAchievement(.coins1000) }
             }
+        }
+        // When the game is over, record the mode's final score.
+        if gameOver && game.mode == .ranked {
+            recordModeResult()
         }
         // Flight plan: bigger hits fly farther. The ball stays up in one
         // long arc, then bounces once or twice and stops.
@@ -427,6 +532,21 @@ struct GameView: View {
         }
     }
 
+    /// Record the mode's final score to the local leaderboard and Game
+    /// Center. Classic records the single hit; Derby records the total;
+    /// Streak and Pitch Challenge record the best single hit.
+    private func recordModeResult() {
+        let score: Int
+        switch game.playMode {
+        case .classic: score = finalDistance
+        case .derby: score = derbyTotal
+        case .streak, .pitchChallenge: score = derbyBest
+        }
+        guard score > 0 else { return }
+        isNewBest = game.recordHit(distance: score)
+        Task { await gameCenter.submitScore(score) }
+    }
+
     // MARK: - Cards
 
     private var resultCard: some View {
@@ -466,6 +586,32 @@ struct GameView: View {
                 .background(Color.yellow.opacity(0.25))
                 .cornerRadius(14)
 
+            // Mode status: running totals for the 10-pitch modes.
+            switch game.playMode {
+            case .classic:
+                EmptyView()
+            case .derby:
+                Text(gameOver
+                     ? "Derby total: \(derbyTotal) feet · Best hit: \(derbyBest) feet"
+                     : "Derby total: \(derbyTotal) feet · \(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+            case .streak:
+                Text(gameOver
+                     ? "Best streak: \(bestStreak) perfect hit\(bestStreak == 1 ? "" : "s")"
+                     : (lastPerfect
+                        ? "Perfect! Streak: \(streak) · \(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left"
+                        : "Streak broken · \(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left"))
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+            case .pitchChallenge:
+                Text(gameOver
+                     ? "Best hit: \(derbyBest) feet"
+                     : "\(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left · Next: \(pitchType.title)")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+            }
+
             // Challenge a friend: share a distance card. Works for ranked
             // and practice hits — sharing is sharing.
             if finalDistance > 0 {
@@ -493,7 +639,25 @@ struct GameView: View {
                 }
             }
 
-            if game.canSwing {
+            // Buttons: mode-aware. Classic swings again (or refills);
+            // the 10-pitch modes offer the next pitch until the game ends.
+            if game.playMode != .classic && !gameOver {
+                Button("Next Pitch (\(pitchesLeft) left)") { phase = .idle }
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundStyle(Color.white)
+                    .cornerRadius(14)
+            } else if game.playMode != .classic && gameOver {
+                Button("Play Again") { startGame() }
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundStyle(Color.white)
+                    .cornerRadius(14)
+            } else if game.canSwing {
                 Button("Swing Again") { phase = .idle }
                     .bold()
                     .frame(maxWidth: .infinity)
@@ -559,13 +723,28 @@ struct GameView: View {
             Text("No swing used. The baseball sailed by.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-            Button("Pitch Again") { phase = .idle }
-                .bold()
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.blue)
-                .foregroundStyle(Color.white)
-                .cornerRadius(14)
+            if game.playMode != .classic && !gameOver {
+                Text("\(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            if game.playMode != .classic && gameOver {
+                Button("Back to Home") { game.screen = .home }
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundStyle(Color.white)
+                    .cornerRadius(14)
+            } else {
+                Button("Pitch Again") { phase = .idle }
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundStyle(Color.white)
+                    .cornerRadius(14)
+            }
         }
         .padding(20)
         .background(Color(.systemBackground))

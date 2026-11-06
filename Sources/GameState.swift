@@ -15,6 +15,66 @@ enum GameMode: String, Codable {
     case ranked
 }
 
+/// Which kind of game to play. Classic is one pitch, one swing. Derby,
+/// Timing Streak, and Pitch Challenge are 10-pitch modes.
+enum PlayMode: String, CaseIterable, Codable {
+    case classic
+    case derby
+    case streak
+    case pitchChallenge
+
+    var title: String {
+        switch self {
+        case .classic: return "Classic"
+        case .derby: return "Home Run Derby"
+        case .streak: return "Timing Streak"
+        case .pitchChallenge: return "Pitch Challenge"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .classic: return "One pitch, one swing"
+        case .derby: return "10 pitches — total distance wins"
+        case .streak: return "10 pitches — chain perfect hits"
+        case .pitchChallenge: return "10 pitches — fastballs, curves, changeups"
+        }
+    }
+
+    /// Pitches per game in this mode.
+    var pitchCount: Int {
+        switch self {
+        case .classic: return 1
+        case .derby, .streak, .pitchChallenge: return 10
+        }
+    }
+}
+
+/// Pitch types for Pitch Challenge mode. Each has its own speed and
+/// timing feel, so the player has to adapt every pitch.
+enum PitchType: String, CaseIterable {
+    case fastball
+    case curveball
+    case changeup
+
+    var title: String {
+        switch self {
+        case .fastball: return "Fastball"
+        case .curveball: return "Curveball"
+        case .changeup: return "Changeup"
+        }
+    }
+
+    /// Seconds for the ball to travel to the plate.
+    var travelTime: Double {
+        switch self {
+        case .fastball: return 0.9
+        case .curveball: return 1.2
+        case .changeup: return 1.8
+        }
+    }
+}
+
 @MainActor
 final class GameState: ObservableObject {
     // MARK: - Published state
@@ -24,6 +84,7 @@ final class GameState: ObservableObject {
     @Published var bat: Bat = .signatureBat(for: .ballplayer)
     @Published var season: Season = .fall
     @Published var mode: GameMode = .practice
+    @Published var playMode: PlayMode = .classic
     @Published var rankedLeft: Int = 10
     @Published var unlimitedSwings = false  // testing: never consume ranked swings
     @Published var removeAdsUnlocked = false  // $4.99 Remove Ads: also unlimited ranked
@@ -76,6 +137,7 @@ final class GameState: ObservableObject {
         static let totalCoinsEarned = "hf TotalCoinsEarned"
         static let totalRankedSwings = "hf TotalRankedSwings"
         static let season = "hf Season"
+        static let playMode = "hf PlayMode"
         static let sluggerID = "hf SluggerID"
     }
 
@@ -359,6 +421,12 @@ final class GameState: ObservableObject {
 
     // MARK: - Scores
 
+    /// Set the play mode (Classic / Derby / Timing Streak / Pitch Challenge).
+    func setPlayMode(_ value: PlayMode) {
+        playMode = value
+        defaults.set(value.rawValue, forKey: Keys.playMode)
+    }
+
     /// Record a hit. Updates the local leaderboard (top 20) and lifetime best.
     /// Returns true when this hit is a new lifetime best.
     @discardableResult
@@ -405,6 +473,10 @@ final class GameState: ObservableObject {
             quests = decoded
         }
         lifetimeBest = defaults.object(forKey: Keys.lifetimeBest) as? Int ?? 0
+        if let modeRaw = defaults.string(forKey: Keys.playMode),
+           let saved = PlayMode(rawValue: modeRaw) {
+            playMode = saved
+        }
 
         if let data = defaults.data(forKey: Keys.leaderboard),
            let decoded = try? JSONDecoder().decode([LeaderboardEntry].self, from: data) {

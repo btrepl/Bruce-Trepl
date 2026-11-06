@@ -44,6 +44,7 @@ Features:
 • Season pass — earn XP from ranked hits, climb 10 levels, claim coins on the free track or unlock the $4.99 premium track for more coins and a Golden Bat
 • Daily rewards and quests — claim a daily gift (streaks pay more) and finish 3 quests a day for bonus coins
 • Rewarded ads — out of ranked swings? Watch an ad for 5 more. Ads never interrupt play, and Remove Ads turns them off
+• 4 ways to play — Classic, Home Run Derby (10 pitches, total distance), Timing Streak (chain perfect hits), and Pitch Challenge (fastballs, curves, changeups)
 
 ## Age rating (estimate)
 9+ — cartoon humor, mild language in the roast sayings, no realistic violence. Final rating comes from Apple's questionnaire in App Store Connect.

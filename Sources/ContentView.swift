@@ -95,6 +95,23 @@ struct HomeView: View {
                 ))
                 .font(.subheadline)
 
+                // Mode picker: Classic, Derby, Timing Streak, Pitch Challenge.
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Mode").bold()
+                    Picker("Mode", selection: Binding(
+                        get: { game.playMode },
+                        set: { game.setPlayMode($0) }
+                    )) {
+                        ForEach(PlayMode.allCases, id: \.self) { mode in
+                            Text(mode.title).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    Text(game.playMode.detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 // Practice: unlimited, never counts. Ranked: 10/day, counts
                 // for the leaderboard. Energy gates rewards, not play.
                 Button {
