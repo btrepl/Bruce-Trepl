@@ -69,7 +69,10 @@ func renderShareCard(distance: Int, sluggerName: String, seasonTitle: String) ->
 struct GameCenterDashboardView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> GKGameCenterViewController {
         let vc = GKGameCenterViewController(state: .leaderboards)
-        vc.leaderboardID = GameCenterManager.leaderboardID
+        // leaderboardIdentifier is deprecated in iOS 14, but it is still the
+        // only property that sets the leaderboard on this view controller
+        // (GKGameCenterViewController has no leaderboardID member).
+        vc.leaderboardIdentifier = GameCenterManager.leaderboardID
         vc.gameCenterDelegate = context.coordinator
         return vc
     }
