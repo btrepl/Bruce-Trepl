@@ -28,6 +28,36 @@ struct SluggerArtView: View {
     }
 }
 
+/// Renders a slugger's front-facing portrait in a 150 x 190 frame — the
+/// fun pose shown on the Home screen and in the character picker. Presets
+/// have a portrait (Santa in his backwards YARD cap, Bigfoot's peace sign,
+/// the Snowman's coffee, Trump's thumbs-up, the Ballplayer tipping his
+/// cap); customs fall back to the back-view batter sprite.
+struct SluggerPortraitView: View {
+    let slugger: Slugger
+
+    var body: some View {
+        ZStack {
+            // Soft ground shadow so the character sits on the field.
+            Ellipse()
+                .fill(Color.black.opacity(0.16))
+                .frame(width: 112, height: 16)
+                .offset(y: 96)
+            if let preset = slugger.preset,
+               let image = UIImage(named: preset.portraitAsset) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+            } else if let image = SpriteRenderer.image(for: slugger) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+            }
+        }
+        .frame(width: 150, height: 190)
+    }
+}
+
 // MARK: - Sprite rendering
 
 /// Loads illustrated sprites from the asset catalog and crops/composes them.

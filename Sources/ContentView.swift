@@ -44,7 +44,7 @@ struct HomeView: View {
 
                 // Current slugger + bat
                 HStack(spacing: 16) {
-                    SluggerArtView(slugger: game.slugger)
+                    SluggerPortraitView(slugger: game.slugger)
                         .scaleEffect(0.85)
                         .frame(width: 130, height: 165)
                     VStack(alignment: .leading, spacing: 6) {
@@ -181,7 +181,7 @@ struct CharacterSelectView: View {
                             game.screen = .home
                         } label: {
                             VStack(spacing: 6) {
-                                SluggerArtView(slugger: slugger)
+                                SluggerPortraitView(slugger: slugger)
                                     .scaleEffect(0.8)
                                     .frame(width: 120, height: 150)
                                 Text(slugger.name).bold()
@@ -214,7 +214,7 @@ struct CharacterSelectView: View {
                                 game.screen = .home
                             } label: {
                                 VStack(spacing: 6) {
-                                    SluggerArtView(slugger: game.customSlugger)
+                                    SluggerPortraitView(slugger: game.customSlugger)
                                         .scaleEffect(0.8)
                                         .frame(width: 120, height: 150)
                                     Text(game.customSlugger.name).bold()
@@ -227,7 +227,7 @@ struct CharacterSelectView: View {
                             Button("Edit My Slugger") { game.screen = .buildSlugger }
                                 .font(.caption)
                         } else {
-                            SluggerArtView(slugger: game.customSlugger)
+                            SluggerPortraitView(slugger: game.customSlugger)
                                 .scaleEffect(0.8)
                                 .frame(width: 120, height: 150)
                                 .opacity(0.5)

@@ -58,6 +58,11 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
 
     var id: String { rawValue }
 
+    /// Front-facing portrait asset (the fun pose on the Home screen and in
+    /// the character picker). Portraits live in Sprites/ as
+    /// portrait-<preset>.base64.txt and decode to the same name.
+    var portraitAsset: String { "portrait-\(rawValue)" }
+
     var displayName: String {
         switch self {
         case .santa: return "Santa"
