@@ -30,6 +30,7 @@ struct GameView: View {
     @State private var impactFlash = false
     @State private var flightDistance: CGFloat = 0
     @State private var flightDuration: Double = 2.6
+    @State private var shareImage: UIImage?
 
     private let pitchDuration = 1.4
     private let sweetSpot = 0.85
@@ -419,6 +420,33 @@ struct GameView: View {
                 .background(Color.yellow.opacity(0.25))
                 .cornerRadius(14)
 
+            // Challenge a friend: share a distance card. Works for ranked
+            // and practice hits — sharing is sharing.
+            if finalDistance > 0 {
+                if let image = shareImage {
+                    ShareLink(item: image,
+                              preview: SharePreview("I hit it \(finalDistance) feet!", image: Image(uiImage: image))) {
+                        Label("Challenge a Friend", systemImage: "square.and.arrow.up")
+                            .bold()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.purple)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(14)
+                    }
+                } else {
+                    ShareLink(item: "I hit it \(finalDistance) feet in How Far Can You Hit It? Can you beat that?") {
+                        Label("Challenge a Friend", systemImage: "square.and.arrow.up")
+                            .bold()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.purple)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(14)
+                    }
+                }
+            }
+
             if game.canSwing {
                 Button("Swing Again") { phase = .idle }
                     .bold()
@@ -452,6 +480,13 @@ struct GameView: View {
         .cornerRadius(20)
         .shadow(radius: 12)
         .padding(.horizontal, 24)
+        .onAppear {
+            // Render the share card once, so Challenge a Friend is instant.
+            shareImage = renderShareCard(
+                distance: finalDistance,
+                sluggerName: game.slugger.name,
+                seasonTitle: game.season.title)
+        }
     }
 
     private var tookPitchCard: some View {

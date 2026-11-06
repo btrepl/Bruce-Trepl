@@ -44,7 +44,9 @@ far it flies — measured in feet.
   mode that counts for the leaderboard. Ranked Refill: 20 ranked swings
   for $0.99. Remove Ads + Unlimited Ranked: $4.99, one-time.
 - **Leaderboard:** top 20 local bests now; Game Center is the integration
-  point for the real global board (see below).
+  point for the real global board (see below). Friends board (Game Center
+  friends-only) + global board in-app, plus a Challenge a Friend share
+  card after every hit and a Game Center dashboard button.
 - **Pricing:** FREE download (set in App Store Connect) + the $0.99
   unlocks + $0.99 ranked refills + $4.99 Remove Ads. Enroll in the App Store
   Small Business Program so Apple takes 15% instead of 30%.

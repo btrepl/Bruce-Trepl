@@ -3,6 +3,7 @@
 
 import SwiftUI
 import UIKit
+import GameKit
 
 struct ContentView: View {
     @EnvironmentObject var game: GameState
@@ -442,48 +443,201 @@ struct SeasonIcon: View {
 
 // MARK: - Leaderboard
 
+/// Three boards in one: Friends (Game Center friends-only), Everyone
+/// (Game Center global), and Local (on-device top 20). The friends board
+/// is the one to watch — it is the only board where you know the names.
+/// A dashboard button opens Game Center's own leaderboard, where the
+/// player can use the system's challenge UI (including iOS 26 Challenges).
 struct LeaderboardView: View {
     @EnvironmentObject var game: GameState
     @EnvironmentObject var gameCenter: GameCenterManager
+
+    private enum BoardTab: String, CaseIterable {
+        case friends = "Friends"
+        case everyone = "Everyone"
+        case local = "Local"
+    }
+
+    @State private var tab: BoardTab = .friends
+    @State private var showDashboard = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 HeaderBar(title: "Leaderboard") { game.screen = .home }
-                Text("Local bests. The global Game Center board connects once it is configured in App Store Connect.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
 
-                if game.leaderboard.isEmpty {
-                    Text("No hits yet. Take a swing and set the first score!")
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 40)
-                } else {
-                    ForEach(Array(game.leaderboard.enumerated()), id: \.element.id) { index, entry in
-                        HStack {
-                            Text("#\(index + 1)").bold().frame(width: 40, alignment: .leading)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(entry.distanceText).bold()
-                                Text("\(entry.characterName) · \(entry.season.title)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            if index == 0 {
-                                Image(systemName: "crown.fill")
-                                    .foregroundStyle(Color.yellow)
-                            }
-                        }
+                Picker("Board", selection: $tab) {
+                    ForEach(BoardTab.allCases, id: \.self) { t in
+                        Text(t.rawValue).tag(t)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                switch tab {
+                case .friends:
+                    friendsBoard
+                case .everyone:
+                    globalBoard
+                case .local:
+                    localBoard
+                }
+
+                Button {
+                    showDashboard = true
+                } label: {
+                    Label("Open in Game Center", systemImage: "gamecontroller.fill")
+                        .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color(.secondarySystemBackground))
                         .cornerRadius(12)
-                    }
                 }
+                .buttonStyle(.plain)
                 Spacer()
             }
             .padding(.horizontal)
         }
+        .task { await gameCenter.loadLeaderboards() }
+        .sheet(isPresented: $showDashboard) {
+            GameCenterDashboardView()
+        }
+    }
+
+    // MARK: - Friends board (Game Center, friends-only)
+
+    @ViewBuilder
+    private var friendsBoard: some View {
+        if !gameCenter.isAuthenticated {
+            Text("Sign in to Game Center to see your friends' scores.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 40)
+        } else if gameCenter.isLoadingBoards {
+            ProgressView("Loading the friends board…")
+                .padding(.top, 40)
+        } else if let error = gameCenter.boardsError {
+            Text(error)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 40)
+        } else if gameCenter.friendsEntries.isEmpty {
+            VStack(spacing: 8) {
+                Text("No friends on the board yet.")
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 40)
+                Text("Hit a big one, tap Challenge a Friend, and get them playing.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        } else {
+            ForEach(gameCenter.friendsEntries, id: \.player.gamePlayerID) { entry in
+                boardRow(rank: entry.rank,
+                         name: entry.player.displayName,
+                         distance: entry.score,
+                         isYou: entry.player.gamePlayerID == GKLocalPlayer.local.gamePlayerID)
+            }
+        }
+    }
+
+    // MARK: - Global board (Game Center, everyone)
+
+    @ViewBuilder
+    private var globalBoard: some View {
+        if !gameCenter.isAuthenticated {
+            Text("Sign in to Game Center to see the global board.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 40)
+        } else if gameCenter.isLoadingBoards {
+            ProgressView("Loading the global board…")
+                .padding(.top, 40)
+        } else if let error = gameCenter.boardsError {
+            Text(error)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 40)
+        } else if gameCenter.globalEntries.isEmpty {
+            Text("No scores on the global board yet. Be the first!")
+                .foregroundStyle(.secondary)
+                .padding(.top, 40)
+        } else {
+            ForEach(gameCenter.globalEntries, id: \.player.gamePlayerID) { entry in
+                boardRow(rank: entry.rank,
+                         name: entry.player.displayName,
+                         distance: entry.score,
+                         isYou: entry.player.gamePlayerID == GKLocalPlayer.local.gamePlayerID)
+            }
+        }
+    }
+
+    // MARK: - Local board (on-device top 20)
+
+    @ViewBuilder
+    private var localBoard: some View {
+        Text("Your best hits on this device.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+
+        if game.leaderboard.isEmpty {
+            Text("No hits yet. Take a swing and set the first score!")
+                .foregroundStyle(.secondary)
+                .padding(.top, 40)
+        } else {
+            ForEach(Array(game.leaderboard.enumerated()), id: \.element.id) { index, entry in
+                HStack {
+                    Text("#\(index + 1)").bold().frame(width: 40, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(entry.distanceText).bold()
+                        Text("\(entry.characterName) · \(entry.season.title)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if index == 0 {
+                        Image(systemName: "crown.fill")
+                            .foregroundStyle(Color.yellow)
+                    }
+                }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(12)
+            }
+        }
+    }
+
+    // MARK: - Shared Game Center row
+
+    private func boardRow(rank: Int, name: String, distance: Int, isYou: Bool) -> some View {
+        HStack {
+            Text("#\(rank)").bold().frame(width: 40, alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(distance) feet").bold()
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            if isYou {
+                Text("YOU")
+                    .font(.caption2).bold()
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.blue.opacity(0.2))
+                    .cornerRadius(8)
+            }
+            if rank == 1 {
+                Image(systemName: "crown.fill")
+                    .foregroundStyle(Color.yellow)
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
     }
 }
 

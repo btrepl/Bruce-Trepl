@@ -36,6 +36,7 @@ Features:
 • 3 seasons: Fall (pumpkins on the ground), Christmas (lights dangling), Normal (plain field)
 • Funny sayings for every hit — hype for moonshots, roasts for dribblers
 • Unlimited practice swings + 10 ranked swings a day + leaderboard
+• Friends leaderboard — see how your friends did, and challenge them to beat your best hit
 
 ## Age rating (estimate)
 9+ — cartoon humor, mild language in the roast sayings, no realistic violence. Final rating comes from Apple's questionnaire in App Store Connect.
