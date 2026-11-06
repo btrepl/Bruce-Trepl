@@ -190,6 +190,9 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
 }
 
 /// A bat: an object plus power/speed stats. Custom bats always sum to 8.
+/// Certain bats and clubs carry a power boost — a percentage increase to
+/// hit distance (Bruce's call, build 18: 1%–10%). The boost comes from
+/// the bat itself (signature bats) and from upgrades (custom bats).
 struct Bat: Identifiable, Codable, Equatable {
     var id: String
     var name: String
@@ -197,28 +200,57 @@ struct Bat: Identifiable, Codable, Equatable {
     var power: Int   // 1...7
     var speed: Int   // 1...7
     var isCustom: Bool
+    /// Power boost as a fraction: 0.10 = +10% distance. Signature bats
+    /// have a fixed boost; custom bats gain it from upgrades.
+    var powerBoost: Double = 0
+    /// Upgrade level, 0...5. Each level adds +2% power boost (max +10%).
+    var upgradeLevel: Int = 0
 
-    /// Signature bats for the six preset sluggers.
+    /// Whole-number percent for display, e.g. 10 for +10%.
+    var powerBoostPercent: Int { Int((powerBoost * 100).rounded()) }
+
+    /// Coins to buy the next upgrade level (level is 0-based here).
+    /// Level 1 costs 100, then 250, 500, 1000, 2000.
+    static func upgradeCost(for level: Int) -> Int {
+        switch level {
+        case 0: return 100
+        case 1: return 250
+        case 2: return 500
+        case 3: return 1000
+        default: return 2000
+        }
+    }
+
+    static let maxUpgradeLevel = 5
+
+    /// Signature bats for the six preset sluggers. Each carries a power
+    /// boost: the heavy clubs hit hardest, the light ones less so.
     static func signatureBat(for preset: PresetID) -> Bat {
         switch preset {
         case .santa:
             return Bat(id: "bat-giftwrap", name: "Gift Wrap Roll",
-                       object: .giftWrap, power: 3, speed: 4, isCustom: false)
+                       object: .giftWrap, power: 3, speed: 4, isCustom: false,
+                       powerBoost: 0.03)
         case .ballplayer:
             return Bat(id: "bat-classic", name: "Classic Bat",
-                       object: .classicBat, power: 4, speed: 4, isCustom: false)
+                       object: .classicBat, power: 4, speed: 4, isCustom: false,
+                       powerBoost: 0.05)
         case .bigfoot:
             return Bat(id: "bat-baretree", name: "Wooden Club",
-                       object: .bareTree, power: 6, speed: 2, isCustom: false)
+                       object: .bareTree, power: 6, speed: 2, isCustom: false,
+                       powerBoost: 0.10)
         case .snowman:
             return Bat(id: "bat-iceclub", name: "Ice Club",
-                       object: .iceClub, power: 4, speed: 2, isCustom: false)
+                       object: .iceClub, power: 4, speed: 2, isCustom: false,
+                       powerBoost: 0.04)
         case .princess:
             return Bat(id: "bat-scepter", name: "Royal Scepter",
-                       object: .scepter, power: 5, speed: 3, isCustom: false)
+                       object: .scepter, power: 5, speed: 3, isCustom: false,
+                       powerBoost: 0.08)
         case .adventurer:
             return Bat(id: "bat-machete", name: "Machete",
-                       object: .machete, power: 3, speed: 5, isCustom: false)
+                       object: .machete, power: 3, speed: 5, isCustom: false,
+                       powerBoost: 0.06)
         }
     }
 }

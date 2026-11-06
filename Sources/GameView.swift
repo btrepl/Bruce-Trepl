@@ -31,6 +31,7 @@ struct GameView: View {
     @State private var flightDistance: CGFloat = 0
     @State private var flightDuration: Double = 2.6
     @State private var shareImage: UIImage?
+    @State private var coinsEarned = 0
 
     private let pitchDuration = 1.4
     private let sweetSpot = 0.85
@@ -332,19 +333,24 @@ struct GameView: View {
             distance = 0  // whiff
         } else {
             let factor = 0.85 + Double(game.bat.power) * 0.05
-            distance = Int((quality * 380 + Double.random(in: 0...40)) * factor)
+            // The bat's power boost (1%–10%) multiplies the distance.
+            let boost = 1.0 + game.bat.powerBoost
+            distance = Int((quality * 380 + Double.random(in: 0...40)) * factor * boost)
         }
 
         finalDistance = distance
         tier = HitTier.tier(for: distance, swung: true)
         saying = Sayings.random(for: tier)
-        // Only Ranked hits count for the leaderboard and Game Center.
-        // Practice is just for fun — no records, no submission.
+        // Only Ranked hits count for the leaderboard and Game Center, and
+        // only Ranked hits earn coins. Practice is just for fun.
         if distance > 0 && game.mode == .ranked {
             isNewBest = game.recordHit(distance: distance)
+            coinsEarned = game.coinsForHit(distance: distance)
+            game.earnCoins(coinsEarned)
             Task { await gameCenter.submitScore(distance) }
         } else {
             isNewBest = false
+            coinsEarned = 0
         }
         // Flight plan: bigger hits fly farther. The ball stays up in one
         // long arc, then bounces once or twice and stops.
@@ -406,6 +412,16 @@ struct GameView: View {
                     Text("NEW BEST!")
                         .font(.headline)
                         .foregroundStyle(Color.orange)
+                }
+                if coinsEarned > 0 {
+                    Label("+\(coinsEarned) coins", systemImage: "dollarsign.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(Color.yellow)
+                }
+                if game.bat.powerBoost > 0 {
+                    Text("Power boost +\(game.bat.powerBoostPercent)% from the \(game.bat.name)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             } else {
                 Text("Whiff!")

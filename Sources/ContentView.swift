@@ -54,7 +54,7 @@ struct HomeView: View {
                         Text("Swings a \(game.bat.name)")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        Text("Power \(game.bat.power) · Speed \(game.bat.speed)")
+                        Text("Power \(game.bat.power) · Speed \(game.bat.speed)\(game.bat.powerBoost > 0 ? " · +\(game.bat.powerBoostPercent)% power" : "")")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text("Season: \(game.season.title)")
@@ -67,11 +67,14 @@ struct HomeView: View {
                 .background(Color(.secondarySystemBackground))
                 .cornerRadius(16)
 
-                // Ranked swings left today
+                // Ranked swings left today + coins
                 HStack {
                     Label(game.rankedUnlimited ? "Unlimited ranked swings" : "\(game.rankedLeft) ranked swings left today", systemImage: "bolt.fill")
                         .font(.headline)
                     Spacer()
+                    Label("\(game.coins)", systemImage: "dollarsign.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(Color.yellow)
                     if game.lifetimeBest > 0 {
                         Text("Best: \(game.lifetimeBest) \(game.season.unitName(for: game.lifetimeBest))")
                             .font(.subheadline)
@@ -166,6 +169,40 @@ struct HomeView: View {
                             .background(Color.purple)
                             .foregroundStyle(Color.white)
                             .cornerRadius(12)
+                    }
+                    .disabled(store.isPurchasing)
+                }
+
+                // Coin bundles — coins upgrade custom bats (+2% power each).
+                HStack(spacing: 10) {
+                    Button {
+                        Task {
+                            if await store.purchaseCoins1000() {
+                                game.earnCoins(1000)
+                            }
+                        }
+                    } label: {
+                        Text("1,000 coins — $0.99")
+                            .font(.subheadline).bold()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color.yellow.opacity(0.25))
+                            .cornerRadius(10)
+                    }
+                    .disabled(store.isPurchasing)
+                    Button {
+                        Task {
+                            if await store.purchaseCoins5000() {
+                                game.earnCoins(5000)
+                            }
+                        }
+                    } label: {
+                        Text("5,000 coins — $2.99")
+                            .font(.subheadline).bold()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color.yellow.opacity(0.25))
+                            .cornerRadius(10)
                     }
                     .disabled(store.isPurchasing)
                 }
@@ -320,29 +357,51 @@ struct CharacterSelectView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("My Bats").bold()
                         ForEach(game.customBats) { bat in
-                            Button {
-                                game.selectCustomBat(bat)
-                                game.screen = .home
-                            } label: {
-                                HStack {
-                                    BatArtView(bat: bat)
-                                        .scaleEffect(0.5)
-                                        .frame(width: 20, height: 60)
-                                    Text(bat.name)
-                                    Spacer()
-                                    Text("P\(bat.power) · S\(bat.speed)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                    if game.bat.id == bat.id {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(Color.blue)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Button {
+                                    game.selectCustomBat(bat)
+                                    game.screen = .home
+                                } label: {
+                                    HStack {
+                                        BatArtView(bat: bat)
+                                            .scaleEffect(0.5)
+                                            .frame(width: 20, height: 60)
+                                        Text(bat.name)
+                                        Spacer()
+                                        Text("P\(bat.power) · S\(bat.speed)\(bat.powerBoost > 0 ? " · +\(bat.powerBoostPercent)%" : "")")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        if game.bat.id == bat.id {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(Color.blue)
+                                        }
                                     }
                                 }
-                                .padding(8)
-                                .background(Color(.secondarySystemBackground))
-                                .cornerRadius(10)
+                                .buttonStyle(.plain)
+                                // Upgrade: +2% power boost per level, up to +10%.
+                                if bat.upgradeLevel < Bat.maxUpgradeLevel {
+                                    let cost = Bat.upgradeCost(for: bat.upgradeLevel)
+                                    Button {
+                                        _ = game.upgradeBat(bat)
+                                    } label: {
+                                        Text("Upgrade to +\(bat.powerBoostPercent + 2)% — \(cost) coins")
+                                            .font(.caption).bold()
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 5)
+                                            .background(game.coins >= cost ? Color.yellow : Color.gray.opacity(0.3))
+                                            .foregroundStyle(game.coins >= cost ? Color.black : Color.secondary)
+                                            .cornerRadius(8)
+                                    }
+                                    .disabled(game.coins < cost)
+                                } else {
+                                    Text("Maxed out at +10% power")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
-                            .buttonStyle(.plain)
+                            .padding(8)
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(10)
                         }
                     }
                 }

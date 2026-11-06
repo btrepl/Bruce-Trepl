@@ -6,6 +6,7 @@
 //   - Build-a-Bat (custom bats):          $0.99
 //   - Ranked Refill: 20 ranked swings for $0.99 (consumable)
 //   - Remove Ads + Unlimited Ranked:      $4.99 (non-consumable)
+//   - Coin bundles: 1,000 coins $0.99, 5,000 coins $2.99 (consumable)
 //   - Rewarded ads (watch an ad for extra ranked swings) arrive in a later
 //     build; Remove Ads turns those off too.
 //
@@ -18,6 +19,8 @@
 //        com.tntfamily.howfar.custombat     (non-consumable, $0.99)
 //        com.tntfamily.howfar.rankedrefill20 (consumable, $0.99)
 //        com.tntfamily.howfar.removeads     (non-consumable, $4.99)
+//        com.tntfamily.howfar.coins1000     (consumable, $0.99)
+//        com.tntfamily.howfar.coins5000     (consumable, $2.99)
 //   2. Set the app price tier to Free in App Store Connect.
 //   3. Test in the sandbox / TestFlight before submitting.
 //   4. Enroll in the App Store Small Business Program (15% commission).
@@ -35,6 +38,8 @@ final class StoreManager: ObservableObject {
     static let customBatID = "com.tntfamily.howfar.custombat"
     static let rankedRefillID = "com.tntfamily.howfar.rankedrefill20"
     static let removeAdsID = "com.tntfamily.howfar.removeads"
+    static let coins1000ID = "com.tntfamily.howfar.coins1000"
+    static let coins5000ID = "com.tntfamily.howfar.coins5000"
 
     // MARK: - State
 
@@ -81,6 +86,17 @@ final class StoreManager: ObservableObject {
     /// Buy 20 ranked swings ($0.99). Returns true on success.
     func purchaseRankedRefill() async -> Bool {
         await purchase(productID: Self.rankedRefillID)
+    }
+
+    /// Buy 1,000 coins ($0.99). Returns true on success. Coins are
+    /// credited by the caller (GameState) via the returned amount.
+    func purchaseCoins1000() async -> Bool {
+        await purchase(productID: Self.coins1000ID)
+    }
+
+    /// Buy 5,000 coins ($2.99). Returns true on success.
+    func purchaseCoins5000() async -> Bool {
+        await purchase(productID: Self.coins5000ID)
     }
 
     /// Remove Ads + Unlimited Ranked ($4.99). Returns true on success.

@@ -17,6 +17,8 @@ Run this once the Apple Developer account is active. The product and leaderboard
 | `com.tntfamily.howfar.custombat` | Non-consumable | $0.99 | Custom Bat | Build-a-Bat (make your own bat) |
 | `com.tntfamily.howfar.rankedrefill20` | Consumable | $0.99 | Ranked Refill | 20 ranked swings |
 | `com.tntfamily.howfar.removeads` | Non-consumable | $4.99 | Remove Ads | Removes ads + unlimited ranked swings |
+| `com.tntfamily.howfar.coins1000` | Consumable | $0.99 | 1,000 Coins | Coins for bat upgrades |
+| `com.tntfamily.howfar.coins5000` | Consumable | $2.99 | 5,000 Coins | Coins for bat upgrades |
 
 Fill in a short description for each, plus the review information App Store Connect asks for. These IDs must match `StoreManager.swift` exactly — they already do.
 

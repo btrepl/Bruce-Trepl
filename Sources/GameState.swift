@@ -31,6 +31,7 @@ final class GameState: ObservableObject {
     @Published var customBats: [Bat] = []
     @Published var leaderboard: [LeaderboardEntry] = []
     @Published var lifetimeBest: Int = 0
+    @Published var coins: Int = 0
 
     // MARK: - Persistence keys
 
@@ -43,6 +44,7 @@ final class GameState: ObservableObject {
         static let lifetimeBest = "hf LifetimeBest"
         static let customSlugger = "hf CustomSlugger"
         static let customBats = "hf CustomBats"
+        static let coins = "hf Coins"
         static let season = "hf Season"
         static let sluggerID = "hf SluggerID"
     }
@@ -109,6 +111,54 @@ final class GameState: ObservableObject {
         defaults.set(rankedLeft, forKey: Keys.rankedLeft)
     }
 
+    // MARK: - Coins
+
+    /// Earn coins from a ranked hit: 1 coin per 10 feet, minimum 5,
+    /// plus a 25-coin bonus for a big hit (280+). Practice earns nothing —
+    /// coins are the reward for ranked play.
+    func coinsForHit(distance: Int) -> Int {
+        guard distance > 0 else { return 0 }
+        var earned = max(5, distance / 10)
+        if distance >= 280 { earned += 25 }
+        return earned
+    }
+
+    func earnCoins(_ amount: Int) {
+        guard amount > 0 else { return }
+        coins += amount
+        defaults.set(coins, forKey: Keys.coins)
+    }
+
+    /// Spend coins. Returns false when the player cannot afford it.
+    @discardableResult
+    func spendCoins(_ amount: Int) -> Bool {
+        guard amount > 0, coins >= amount else { return false }
+        coins -= amount
+        defaults.set(coins, forKey: Keys.coins)
+        return true
+    }
+
+    // MARK: - Bat upgrades
+
+    /// Upgrade a custom bat: +1 level, +2% power boost, for the level's
+    /// coin cost. Returns false when maxed out or unaffordable. Signature
+    /// bats cannot be upgraded — their boost is fixed.
+    @discardableResult
+    func upgradeBat(_ bat: Bat) -> Bool {
+        guard bat.isCustom else { return false }
+        guard bat.upgradeLevel < Bat.maxUpgradeLevel else { return false }
+        let cost = Bat.upgradeCost(for: bat.upgradeLevel)
+        guard spendCoins(cost) else { return false }
+        guard let index = customBats.firstIndex(where: { $0.id == bat.id }) else { return false }
+        customBats[index].upgradeLevel += 1
+        customBats[index].powerBoost = Double(customBats[index].upgradeLevel) * 0.02
+        if self.bat.id == bat.id {
+            self.bat = customBats[index]
+        }
+        persistCustomBats()
+        return true
+    }
+
     // MARK: - Selection
 
     /// Picking a preset slugger auto-equips their signature bat.
@@ -170,6 +220,7 @@ final class GameState: ObservableObject {
         rankedLeft = defaults.object(forKey: Keys.rankedLeft) as? Int ?? 10
         unlimitedSwings = defaults.bool(forKey: Keys.unlimitedSwings)
         removeAdsUnlocked = defaults.bool(forKey: Keys.removeAds)
+        coins = defaults.object(forKey: Keys.coins) as? Int ?? 0
         lifetimeBest = defaults.object(forKey: Keys.lifetimeBest) as? Int ?? 0
 
         if let data = defaults.data(forKey: Keys.leaderboard),
