@@ -69,7 +69,7 @@ func renderShareCard(distance: Int, sluggerName: String, seasonTitle: String) ->
 struct GameCenterDashboardView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> GKGameCenterViewController {
         let vc = GKGameCenterViewController(state: .leaderboards)
-        vc.leaderboardIdentifier = GameCenterManager.leaderboardID
+        vc.leaderboardID = GameCenterManager.leaderboardID
         vc.gameCenterDelegate = context.coordinator
         return vc
     }

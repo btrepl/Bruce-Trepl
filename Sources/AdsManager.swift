@@ -81,6 +81,7 @@ final class AdsManager: NSObject, ObservableObject {
     }
 }
 
+@MainActor
 extension AdsManager: GADFullScreenContentDelegate {
     func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
         isShowingAd = false

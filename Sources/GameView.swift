@@ -616,7 +616,7 @@ struct GameView: View {
             // and practice hits — sharing is sharing.
             if finalDistance > 0 {
                 if let image = shareImage {
-                    ShareLink(item: image,
+                    ShareLink(item: Image(uiImage: image),
                               preview: SharePreview("I hit it \(finalDistance) feet!", image: Image(uiImage: image))) {
                         Label("Challenge a Friend", systemImage: "square.and.arrow.up")
                             .bold()
