@@ -47,7 +47,7 @@ enum Season: String, CaseIterable, Identifiable, Codable {
 
 // MARK: - Preset characters
 
-/// The five free out-of-the-box sluggers. The snowman is a generic funny
+/// The seven free out-of-the-box sluggers. The snowman is a generic funny
 /// snowman drawn from scratch; it is not any licensed snowman character.
 enum PresetID: String, CaseIterable, Identifiable, Codable {
     case santa
@@ -55,6 +55,8 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
     case ballplayer
     case bigfoot
     case snowman
+    case princess
+    case adventurer
 
     var id: String { rawValue }
 
@@ -70,6 +72,8 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
         case .ballplayer: return "The Ballplayer"
         case .bigfoot: return "Bigfoot"
         case .snowman: return "Snowman"
+        case .princess: return "Princess Ruby"
+        case .adventurer: return "Indiana Jane"
         }
     }
 
@@ -80,6 +84,8 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
         case .ballplayer: return "A kid with a dream and a big bat."
         case .bigfoot: return "He was never lost. He was practicing."
         case .snowman: return "Tall, skinny, and freezing cold."
+        case .princess: return "Royalty with a really big scepter."
+        case .adventurer: return "She explores. She swings. She conquers."
         }
     }
 }
@@ -114,6 +120,10 @@ enum SpriteCatalog {
                    headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.68, y: 0.18)),
         SpriteSpec(id: "snowman", displayName: "Snowman",
                    headEnd: 0.480, torsoEnd: 0.739, grip: CGPoint(x: 0.84, y: 0.20)),
+        SpriteSpec(id: "princess", displayName: "Princess Ruby",
+                   headEnd: 0.45, torsoEnd: 0.62, grip: CGPoint(x: 0.78, y: 0.38)),
+        SpriteSpec(id: "adventurer", displayName: "Indiana Jane",
+                   headEnd: 0.45, torsoEnd: 0.60, grip: CGPoint(x: 0.80, y: 0.38)),
         SpriteSpec(id: "santa-yardcap", displayName: "Yard-Cap Santa",
                    headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.75, y: 0.29)),
         SpriteSpec(id: "pumpkin-head", displayName: "Pumpkin Head",
@@ -164,6 +174,8 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
     case cavemanClub
     case baguette
     case magicWand
+    case scepter
+    case machete
 
     var id: String { rawValue }
 
@@ -181,6 +193,8 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
         case .cavemanClub: return "Caveman Club"
         case .baguette: return "Baguette"
         case .magicWand: return "Magic Wand"
+        case .scepter: return "Royal Scepter"
+        case .machete: return "Machete"
         }
     }
 }
@@ -194,7 +208,7 @@ struct Bat: Identifiable, Codable, Equatable {
     var speed: Int   // 1...7
     var isCustom: Bool
 
-    /// Signature bats for the five preset sluggers.
+    /// Signature bats for the seven preset sluggers.
     static func signatureBat(for preset: PresetID) -> Bat {
         switch preset {
         case .santa:
@@ -212,6 +226,12 @@ struct Bat: Identifiable, Codable, Equatable {
         case .snowman:
             return Bat(id: "bat-iceclub", name: "Ice Club",
                        object: .iceClub, power: 4, speed: 2, isCustom: false)
+        case .princess:
+            return Bat(id: "bat-scepter", name: "Royal Scepter",
+                       object: .scepter, power: 5, speed: 3, isCustom: false)
+        case .adventurer:
+            return Bat(id: "bat-machete", name: "Machete",
+                       object: .machete, power: 3, speed: 5, isCustom: false)
         }
     }
 }

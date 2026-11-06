@@ -20,6 +20,8 @@ struct BatArtView: View {
             case .cavemanClub: CavemanClubArt()
             case .baguette: BaguetteArt()
             case .magicWand: MagicWandArt()
+            case .scepter: ScepterArt()
+            case .machete: MacheteArt()
             }
         }
         .frame(width: 40, height: 120)
@@ -310,6 +312,101 @@ struct MagicWandArt: View {
                     .offset(y: -42)
                     .rotationEffect(.degrees(Double(deg)))
             }
+        }
+    }
+}
+
+// MARK: - Royal Scepter (Princess Ruby's bat: golden rod + ruby jewel)
+
+struct ScepterArt: View {
+    var body: some View {
+        ZStack {
+            // Golden shaft.
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(red: 0.85, green: 0.65, blue: 0.20))
+                .frame(width: 8, height: 88)
+                .offset(y: 14)
+            // Gold bands on the shaft.
+            ForEach([-6, 18], id: \.self) { y in
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 0.65, green: 0.48, blue: 0.12))
+                    .frame(width: 12, height: 4)
+                    .offset(y: CGFloat(y))
+            }
+            // Ruby jewel on top (a faceted diamond).
+            Path { p in
+                p.move(to: CGPoint(x: 20, y: 4))
+                p.addLine(to: CGPoint(x: 32, y: 18))
+                p.addLine(to: CGPoint(x: 20, y: 34))
+                p.addLine(to: CGPoint(x: 8, y: 18))
+                p.closeSubpath()
+            }
+            .fill(Color(red: 0.85, green: 0.15, blue: 0.35))
+            // Facet lines on the jewel.
+            Path { p in
+                p.move(to: CGPoint(x: 20, y: 4))
+                p.addLine(to: CGPoint(x: 20, y: 34))
+                p.move(to: CGPoint(x: 8, y: 18))
+                p.addLine(to: CGPoint(x: 32, y: 18))
+            }
+            .stroke(Color.white.opacity(0.7), lineWidth: 1)
+            // Sparkle on the jewel.
+            Circle()
+                .fill(Color.white)
+                .frame(width: 5, height: 5)
+                .offset(x: -4, y: -32)
+            // Gold collar under the jewel.
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 0.65, green: 0.48, blue: 0.12))
+                .frame(width: 14, height: 6)
+                .offset(y: -26)
+            // Knob at the bottom of the shaft.
+            Circle()
+                .fill(Color(red: 0.65, green: 0.48, blue: 0.12))
+                .frame(width: 12, height: 12)
+                .offset(y: 54)
+        }
+    }
+}
+
+// MARK: - Machete (Indiana Jane's bat: a jungle machete)
+
+struct MacheteArt: View {
+    var body: some View {
+        ZStack {
+            // Blade: long flat steel blade, wider toward the curved tip.
+            Path { p in
+                p.move(to: CGPoint(x: 14, y: 82))
+                p.addLine(to: CGPoint(x: 13, y: 20))
+                p.addQuadCurve(to: CGPoint(x: 20, y: 6), control: CGPoint(x: 13, y: 8))
+                p.addQuadCurve(to: CGPoint(x: 27, y: 20), control: CGPoint(x: 27, y: 8))
+                p.addLine(to: CGPoint(x: 26, y: 82))
+                p.closeSubpath()
+            }
+            .fill(Color(red: 0.75, green: 0.78, blue: 0.82))
+            // Sharp edge highlight along the blade.
+            Path { p in
+                p.move(to: CGPoint(x: 24, y: 78))
+                p.addLine(to: CGPoint(x: 24, y: 22))
+            }
+            .stroke(Color.white.opacity(0.8), lineWidth: 1.5)
+            // Handle: dark grip.
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(red: 0.25, green: 0.18, blue: 0.12))
+                .frame(width: 11, height: 38)
+                .offset(y: 41)
+            // Grip grooves on the handle.
+            ForEach([34, 42, 50], id: \.self) { y in
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(Color(red: 0.45, green: 0.35, blue: 0.22))
+                    .frame(width: 13, height: 2.5)
+                    .offset(y: CGFloat(y))
+            }
+            // Brass guard between blade and handle.
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 0.75, green: 0.60, blue: 0.25))
+                .frame(width: 18, height: 5)
+                .offset(y: 22)
         }
     }
 }
