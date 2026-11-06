@@ -5,6 +5,16 @@
 
 import SwiftUI
 
+// MARK: - Game mode: practice vs ranked
+
+/// Practice is unlimited and never counts; Ranked is 10 swings a day and
+/// is the only mode that counts for the leaderboard and coins.
+/// Energy gates *rewards*, not *play* — you can always practice.
+enum GameMode: String, Codable {
+    case practice
+    case ranked
+}
+
 @MainActor
 final class GameState: ObservableObject {
     // MARK: - Published state
@@ -13,8 +23,10 @@ final class GameState: ObservableObject {
     @Published var slugger: Slugger = .presetSlugger(.ballplayer)
     @Published var bat: Bat = .signatureBat(for: .ballplayer)
     @Published var season: Season = .fall
-    @Published var swingsLeft: Int = 10
-    @Published var unlimitedSwings = false  // testing: never consume swings
+    @Published var mode: GameMode = .practice
+    @Published var rankedLeft: Int = 10
+    @Published var unlimitedSwings = false  // testing: never consume ranked swings
+    @Published var removeAdsUnlocked = false  // $4.99 Remove Ads: also unlimited ranked
     @Published var customSlugger: Slugger = .defaultCustom
     @Published var customBats: [Bat] = []
     @Published var leaderboard: [LeaderboardEntry] = []
@@ -23,9 +35,10 @@ final class GameState: ObservableObject {
     // MARK: - Persistence keys
 
     private enum Keys {
-        static let swingsLeft = "hfSwingsLeft"
+        static let rankedLeft = "hfRankedLeft"
         static let unlimitedSwings = "hfUnlimitedSwings"
-        static let swingsDate = "hf SwingsDate"
+        static let removeAds = "hfRemoveAds"
+        static let rankedDate = "hfRankedDate"
         static let leaderboard = "hf Leaderboard"
         static let lifetimeBest = "hf LifetimeBest"
         static let customSlugger = "hf CustomSlugger"
@@ -40,42 +53,60 @@ final class GameState: ObservableObject {
 
     init() {
         loadPersistedState()
-        resetSwingsIfNeeded()
+        resetRankedIfNeeded()
     }
 
-    // MARK: - Daily swings
+    // MARK: - Ranked swings (10/day)
 
-    /// 10 free swings per day. Resets automatically when the calendar day
-    /// changes. Called on launch and whenever the game screen appears.
-    func resetSwingsIfNeeded() {
+    /// 10 ranked swings per day. Resets automatically when the calendar day
+    /// changes. Practice swings are unlimited and never touch this count.
+    /// Called on launch and whenever the game screen appears.
+    func resetRankedIfNeeded() {
         let today = Calendar.current.startOfDay(for: Date())
-        let stored = defaults.object(forKey: Keys.swingsDate) as? Date ?? .distantPast
+        let stored = defaults.object(forKey: Keys.rankedDate) as? Date ?? .distantPast
         if !Calendar.current.isDate(stored, inSameDayAs: today) {
-            swingsLeft = 10
-            defaults.set(today, forKey: Keys.swingsDate)
-            defaults.set(swingsLeft, forKey: Keys.swingsLeft)
+            rankedLeft = 10
+            defaults.set(today, forKey: Keys.rankedDate)
+            defaults.set(rankedLeft, forKey: Keys.rankedLeft)
         }
     }
 
-    var canSwing: Bool { unlimitedSwings || swingsLeft > 0 }
-
-    func useSwing() {
-        // Testing mode: swings are never consumed.
-        guard !unlimitedSwings else { return }
-        guard swingsLeft > 0 else { return }
-        swingsLeft -= 1
-        defaults.set(swingsLeft, forKey: Keys.swingsLeft)
+    /// Practice can always swing; Ranked needs a ranked swing left
+    /// (or unlimited ranked from testing or the Remove Ads purchase).
+    var canSwing: Bool {
+        if mode == .practice { return true }
+        return rankedUnlimited || rankedLeft > 0
     }
 
-    /// Testing toggle: unlimited swings, never consumes the daily 10.
+    /// True when ranked swings never run out: testing toggle or Remove Ads.
+    var rankedUnlimited: Bool { unlimitedSwings || removeAdsUnlocked }
+
+    /// Consume one ranked swing. Practice swings are free and unlimited.
+    func useSwing() {
+        guard mode == .ranked else { return }
+        // Unlimited ranked: swings are never consumed.
+        guard !rankedUnlimited else { return }
+        guard rankedLeft > 0 else { return }
+        rankedLeft -= 1
+        defaults.set(rankedLeft, forKey: Keys.rankedLeft)
+    }
+
+    /// Testing toggle: unlimited ranked swings, never consumes the daily 10.
     func setUnlimitedSwings(_ value: Bool) {
         unlimitedSwings = value
         defaults.set(value, forKey: Keys.unlimitedSwings)
     }
 
-    func addSwings(_ count: Int) {
-        swingsLeft += count
-        defaults.set(swingsLeft, forKey: Keys.swingsLeft)
+    /// Synced from the StoreManager when the Remove Ads purchase is owned.
+    func setRemoveAdsUnlocked(_ value: Bool) {
+        removeAdsUnlocked = value
+        defaults.set(value, forKey: Keys.removeAds)
+    }
+
+    /// Add ranked swings (from a Ranked Refill purchase).
+    func addRankedSwings(_ count: Int) {
+        rankedLeft += count
+        defaults.set(rankedLeft, forKey: Keys.rankedLeft)
     }
 
     // MARK: - Selection
@@ -136,8 +167,9 @@ final class GameState: ObservableObject {
     // MARK: - Persistence
 
     private func loadPersistedState() {
-        swingsLeft = defaults.object(forKey: Keys.swingsLeft) as? Int ?? 10
+        rankedLeft = defaults.object(forKey: Keys.rankedLeft) as? Int ?? 10
         unlimitedSwings = defaults.bool(forKey: Keys.unlimitedSwings)
+        removeAdsUnlocked = defaults.bool(forKey: Keys.removeAds)
         lifetimeBest = defaults.object(forKey: Keys.lifetimeBest) as? Int ?? 0
 
         if let data = defaults.data(forKey: Keys.leaderboard),

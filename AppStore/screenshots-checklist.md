@@ -20,7 +20,7 @@ Do NOT use the web prototype for store screenshots (per AppStore/listing.md).
   no shot may show a roast / small-hit saying — hype lines and neutral
   result cards only.
 1. Gameplay mid-swing — baseball, plain background, a big hit.
-2. Character picker — all five sluggers with signature bats visible.
+2. Character picker — all six sluggers with signature bats visible (the original five minus Trump, plus Princess Ruby and Indiana Jane, added in build 15).
 3. Season picker — Fall (pumpkins on the ground) / Christmas (lights dangling) / Normal (plain field).
 4. Result card — "It flew X feet!" with a hype saying (big hit).
 5. Build-a-Slugger — a custom cartoon slugger (small body, large goofy head).
@@ -28,8 +28,8 @@ Do NOT use the web prototype for store screenshots (per AppStore/listing.md).
    use the local leaderboard screen and do not imply a global board exists).
 
 ## Still open before these can be taken
-- The native code has never been compiled (no Mac here) — first Xcode build
-  may need small fixes, then these shots come from that build.
+- Builds now compile via Codemagic and build 15 (1.0 (15)) is processed in
+  TestFlight — take these shots from that build on a device.
 - Privacy policy URL: host AppStore/privacy-policy.html somewhere public
   (stable URL, not a 48-hour link) and paste it into App Store Connect.
   It still needs a real contact email in place of the placeholder.

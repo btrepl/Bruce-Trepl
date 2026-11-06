@@ -14,7 +14,6 @@ struct BatArtView: View {
             switch bat.object {
             case .classicBat: ClassicBatArt()
             case .giftWrap: GiftWrapArt()
-            case .driver: DriverArt()
             case .bareTree: WoodenClubArt()
             case .iceClub: IceClubArt()
             case .cavemanClub: CavemanClubArt()
@@ -102,33 +101,6 @@ struct GiftWrapArt: View {
                 .fill(Color(red: 0.25, green: 0.17, blue: 0.10))
                 .frame(width: 8, height: 4)
                 .offset(y: -50)
-        }
-    }
-}
-
-// MARK: - Driver (Trump's bat: just a golf driver)
-
-struct DriverArt: View {
-    var body: some View {
-        ZStack {
-            // Grip + long thin shaft
-            RoundedRectangle(cornerRadius: 3)
-                .fill(Color(red: 0.20, green: 0.20, blue: 0.22))
-                .frame(width: 9, height: 26)
-                .offset(y: 46)
-            Rectangle()
-                .fill(Color.gray)
-                .frame(width: 4, height: 66)
-                .offset(y: 0)
-            // One big rounded club head
-            Ellipse()
-                .fill(Color(red: 0.85, green: 0.87, blue: 0.90))
-                .frame(width: 36, height: 26)
-                .offset(y: -46)
-            Ellipse()
-                .fill(Color(red: 0.95, green: 0.97, blue: 1.0))
-                .frame(width: 24, height: 14)
-                .offset(y: -48)
         }
     }
 }

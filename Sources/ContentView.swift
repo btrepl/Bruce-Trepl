@@ -19,7 +19,7 @@ struct ContentView: View {
             case .leaderboard: LeaderboardView()
             }
         }
-        .onAppear { game.resetSwingsIfNeeded() }
+        .onAppear { game.resetRankedIfNeeded() }
     }
 }
 
@@ -66,9 +66,9 @@ struct HomeView: View {
                 .background(Color(.secondarySystemBackground))
                 .cornerRadius(16)
 
-                // Swings
+                // Ranked swings left today
                 HStack {
-                    Label(game.unlimitedSwings ? "Unlimited swings" : "\(game.swingsLeft) swings left today", systemImage: "bolt.fill")
+                    Label(game.rankedUnlimited ? "Unlimited ranked swings" : "\(game.rankedLeft) ranked swings left today", systemImage: "bolt.fill")
                         .font(.headline)
                     Spacer()
                     if game.lifetimeBest > 0 {
@@ -78,37 +78,53 @@ struct HomeView: View {
                     }
                 }
 
-                // Testing: unlimited swings, never consumes the daily 10.
-                Toggle("Unlimited swings (testing)", isOn: Binding(
+                // Testing: unlimited ranked swings, never consumes the daily 10.
+                Toggle("Unlimited ranked (testing)", isOn: Binding(
                     get: { game.unlimitedSwings },
                     set: { game.setUnlimitedSwings($0) }
                 ))
                 .font(.subheadline)
 
+                // Practice: unlimited, never counts. Ranked: 10/day, counts
+                // for the leaderboard. Energy gates rewards, not play.
                 Button {
-                    if game.canSwing {
-                        game.screen = .game
-                    }
+                    game.mode = .practice
+                    game.screen = .game
                 } label: {
-                    Text(game.canSwing ? "PLAY" : "OUT OF SWINGS")
+                    Text("PRACTICE — unlimited")
                         .font(.title2).bold()
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(game.canSwing ? Color.blue : Color.gray)
+                        .background(Color.green)
                         .foregroundStyle(Color.white)
                         .cornerRadius(16)
                 }
-                .disabled(!game.canSwing)
 
-                if !game.canSwing {
+                Button {
+                    if game.rankedUnlimited || game.rankedLeft > 0 {
+                        game.mode = .ranked
+                        game.screen = .game
+                    }
+                } label: {
+                    Text(game.rankedUnlimited || game.rankedLeft > 0 ? "RANKED — \(game.rankedLeft) left" : "RANKED — out for today")
+                        .font(.title2).bold()
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(game.rankedUnlimited || game.rankedLeft > 0 ? Color.blue : Color.gray)
+                        .foregroundStyle(Color.white)
+                        .cornerRadius(16)
+                }
+                .disabled(!game.rankedUnlimited && game.rankedLeft <= 0)
+
+                if !game.rankedUnlimited && game.rankedLeft <= 0 {
                     Button {
                         Task {
-                            if await store.purchaseSwingPack() {
-                                game.addSwings(5)
+                            if await store.purchaseRankedRefill() {
+                                game.addRankedSwings(20)
                             }
                         }
                     } label: {
-                        Text("Get 5 more swings — $1.00")
+                        Text("Get 20 more ranked swings — $0.99")
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.orange)
@@ -127,6 +143,30 @@ struct HomeView: View {
                     MenuButton(title: "Leaderboard", systemImage: "trophy.fill") {
                         game.screen = .leaderboard
                     }
+                }
+
+                // Remove Ads + Unlimited Ranked ($4.99, one-time).
+                if store.removeAdsUnlocked {
+                    Label("Ads removed · Ranked unlimited", systemImage: "checkmark.seal.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button {
+                        Task {
+                            if await store.purchaseRemoveAds() {
+                                game.setRemoveAdsUnlocked(true)
+                            }
+                        }
+                    } label: {
+                        Text(store.isPurchasing ? "Working…" : "Remove Ads + Unlimited Ranked — $4.99")
+                            .font(.subheadline).bold()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.purple)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(12)
+                    }
+                    .disabled(store.isPurchasing)
                 }
 
                 Spacer(minLength: 20)

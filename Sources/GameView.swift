@@ -124,7 +124,7 @@ struct GameView: View {
                         Text(game.season.title)
                             .bold()
                         Spacer()
-                        Label(game.unlimitedSwings ? "Unlimited" : "\(game.swingsLeft) left", systemImage: "bolt.fill")
+                        Label(game.mode == .practice ? "Practice" : (game.rankedUnlimited ? "Ranked · Unlimited" : "Ranked · \(game.rankedLeft) left"), systemImage: "bolt.fill")
                             .font(.subheadline)
                     }
                     // Christmas lights dangling from the top (season decor).
@@ -146,7 +146,7 @@ struct GameView: View {
                 }
             }
         }
-        .onAppear { game.resetSwingsIfNeeded() }
+        .onAppear { game.resetRankedIfNeeded() }
     }
 
     // MARK: - Ball flight + camera
@@ -269,16 +269,16 @@ struct GameView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("Out of swings for today!")
+                    Text("Out of ranked swings for today!")
                         .bold()
                     Button {
                         Task {
-                            if await store.purchaseSwingPack() {
-                                game.addSwings(5)
+                            if await store.purchaseRankedRefill() {
+                                game.addRankedSwings(20)
                             }
                         }
                     } label: {
-                        Text("Get 5 more swings — $1.00")
+                        Text("Get 20 more ranked swings — $0.99")
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.orange)
@@ -337,7 +337,9 @@ struct GameView: View {
         finalDistance = distance
         tier = HitTier.tier(for: distance, swung: true)
         saying = Sayings.random(for: tier)
-        if distance > 0 {
+        // Only Ranked hits count for the leaderboard and Game Center.
+        // Practice is just for fun — no records, no submission.
+        if distance > 0 && game.mode == .ranked {
             isNewBest = game.recordHit(distance: distance)
             Task { await gameCenter.submitScore(distance) }
         } else {
@@ -428,13 +430,13 @@ struct GameView: View {
             } else {
                 Button {
                     Task {
-                        if await store.purchaseSwingPack() {
-                            game.addSwings(5)
+                        if await store.purchaseRankedRefill() {
+                            game.addRankedSwings(20)
                             phase = .idle
                         }
                     }
                 } label: {
-                    Text("Get 5 more swings — $1.00")
+                    Text("Get 20 more ranked swings — $0.99")
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.orange)

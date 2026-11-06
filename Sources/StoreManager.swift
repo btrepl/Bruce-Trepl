@@ -1,26 +1,28 @@
 // StoreManager.swift
 // In-app purchases for "How Far Can You Hit It?"
 //
-// PRICING (matches the game design):
+// The app is FREE to download. Monetization (build 16, free-to-play rebuild):
 //   - Build-a-Slugger (custom characters): $0.99
 //   - Build-a-Bat (custom bats):          $0.99
-//   - Extra swings: 5 swings for $1.00
-//   - The app itself is a $1.00 paid download (set in App Store Connect).
+//   - Ranked Refill: 20 ranked swings for $0.99 (consumable)
+//   - Remove Ads + Unlimited Ranked:      $4.99 (non-consumable)
+//   - Rewarded ads (watch an ad for extra ranked swings) arrive in a later
+//     build; Remove Ads turns those off too.
 //
-// STUB STATUS: `stubMode` is ON. While it is on, purchases are simulated
-// (short delay, then success) so the game is fully playable before any
-// App Store Connect products exist. The real StoreKit 2 code path is already
-// written below and runs automatically once stubMode is set to false AND
-// matching products exist in App Store Connect.
+// STUB STATUS: `stubMode` is OFF (real StoreKit). The real StoreKit 2 code
+// path runs when matching products exist in App Store Connect.
 //
 // TO GO LIVE:
 //   1. Create these product IDs in App Store Connect (same bundle ID):
 //        com.tntfamily.howfar.customslugger  (non-consumable, $0.99)
 //        com.tntfamily.howfar.custombat     (non-consumable, $0.99)
-//        com.tntfamily.howfar.swingpack5    (consumable, $1.00)
-//   2. Set stubMode = false.
+//        com.tntfamily.howfar.rankedrefill20 (consumable, $0.99)
+//        com.tntfamily.howfar.removeads     (non-consumable, $4.99)
+//   2. Set the app price tier to Free in App Store Connect.
 //   3. Test in the sandbox / TestFlight before submitting.
 //   4. Enroll in the App Store Small Business Program (15% commission).
+//   NOTE: the old swingpack5 product ($1.00 for 5 swings) is retired;
+//   ranked refills replace it. Do not re-create it.
 
 import SwiftUI
 import StoreKit
@@ -31,12 +33,14 @@ final class StoreManager: ObservableObject {
 
     static let customSluggerID = "com.tntfamily.howfar.customslugger"
     static let customBatID = "com.tntfamily.howfar.custombat"
-    static let swingPackID = "com.tntfamily.howfar.swingpack5"
+    static let rankedRefillID = "com.tntfamily.howfar.rankedrefill20"
+    static let removeAdsID = "com.tntfamily.howfar.removeads"
 
     // MARK: - State
 
     @Published private(set) var customSluggerUnlocked = false
     @Published private(set) var customBatUnlocked = false
+    @Published private(set) var removeAdsUnlocked = false
     @Published private(set) var isPurchasing = false
     @Published private(set) var lastError: String?
 
@@ -49,6 +53,7 @@ final class StoreManager: ObservableObject {
     init() {
         customSluggerUnlocked = defaults.bool(forKey: "hfUnlockSlugger")
         customBatUnlocked = defaults.bool(forKey: "hfUnlockBat")
+        removeAdsUnlocked = defaults.bool(forKey: "hfUnlockRemoveAds")
     }
 
     // MARK: - Public purchase API (used by the views)
@@ -73,9 +78,19 @@ final class StoreManager: ObservableObject {
         return ok
     }
 
-    /// Buy 5 extra swings ($1.00). Returns true on success.
-    func purchaseSwingPack() async -> Bool {
-        await purchase(productID: Self.swingPackID)
+    /// Buy 20 ranked swings ($0.99). Returns true on success.
+    func purchaseRankedRefill() async -> Bool {
+        await purchase(productID: Self.rankedRefillID)
+    }
+
+    /// Remove Ads + Unlimited Ranked ($4.99). Returns true on success.
+    func purchaseRemoveAds() async -> Bool {
+        let ok = await purchase(productID: Self.removeAdsID)
+        if ok {
+            removeAdsUnlocked = true
+            defaults.set(true, forKey: "hfUnlockRemoveAds")
+        }
+        return ok
     }
 
     /// Restore non-consumable purchases (real StoreKit path only; the stub
@@ -144,6 +159,9 @@ final class StoreManager: ObservableObject {
         case Self.customBatID:
             customBatUnlocked = true
             defaults.set(true, forKey: "hfUnlockBat")
+        case Self.removeAdsID:
+            removeAdsUnlocked = true
+            defaults.set(true, forKey: "hfUnlockRemoveAds")
         default:
             break
         }

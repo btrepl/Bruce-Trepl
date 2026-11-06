@@ -23,7 +23,10 @@ struct HowFarCanYouHitItApp: App {
                 .environmentObject(gameCenter)
                 .onAppear {
                     gameCenter.authenticate()
-                    Task { await store.restorePurchases() }
+                    Task {
+                        await store.restorePurchases()
+                        gameState.setRemoveAdsUnlocked(store.removeAdsUnlocked)
+                    }
                 }
         }
     }

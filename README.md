@@ -11,12 +11,13 @@ far it flies — measured in feet.
 
 ## The game
 
-- **5 free sluggers, each with a signature bat that auto-equips:**
+- **6 free sluggers, each with a signature bat that auto-equips:**
   - Santa — Gift Wrap Roll (Power 3, Speed 4)
-  - Donald Trump — Driver, a golf driver (Power 4, Speed 4)
   - The Ballplayer — Classic Bat, a classic American baseball bat shape (Power 4, Speed 4)
   - Bigfoot — Wooden Club, a chunky caveman-style club (Power 6, Speed 2)
   - Snowman — Ice Club, a chunky frozen club (Power 4, Speed 2)
+  - Princess Ruby — Royal Scepter (Power 5, Speed 3)
+  - Indiana Jane — Machete (Power 3, Speed 5)
 - **Build-a-Slugger** ($0.99 unlock): name, face style, expression, hat,
   jersey color. Smaller body, larger goofy head, cartoonish person look.
 - **Build-a-Bat** ($0.99 unlock): pick an object, split 8 points between
@@ -38,13 +39,15 @@ far it flies — measured in feet.
   - Small (1–149): full roast — "Nice swing, Alice",
     "Your mom swings harder than that", "Wow, that sucked"
   - Miss/whiff: roasted.
-- **Swings:** 10 free per day (resets on the calendar day, stored in
-  UserDefaults). Extra swings: 5 for $1.00.
+- **Swings:** Practice is unlimited and never counts. Ranked is 10 per day
+  (resets on the calendar day, stored in UserDefaults) and is the only
+  mode that counts for the leaderboard. Ranked Refill: 20 ranked swings
+  for $0.99. Remove Ads + Unlimited Ranked: $4.99, one-time.
 - **Leaderboard:** top 20 local bests now; Game Center is the integration
   point for the real global board (see below).
-- **Pricing:** $1.00 paid download (set in App Store Connect) + the $0.99
-  unlocks + $1.00 swing packs. Enroll in the App Store Small Business
-  Program so Apple takes 15% instead of 30%.
+- **Pricing:** FREE download (set in App Store Connect) + the $0.99
+  unlocks + $0.99 ranked refills + $4.99 Remove Ads. Enroll in the App Store
+  Small Business Program so Apple takes 15% instead of 30%.
 
 ## Art and naming rules (baked into the code)
 
@@ -81,22 +84,22 @@ far it flies — measured in feet.
 | `GameState.swift` | Shared state: selection, daily swings, scores, persistence |
 | `StoreManager.swift` | In-app purchases (StoreKit 2, currently stubbed) |
 | `GameCenterManager.swift` | Game Center sign-in + score submission (integration point) |
-| `CharacterArt.swift` | Original cartoon art for all 5 presets + custom sluggers |
-| `BatArt.swift` | Original art for all 8 bat objects, drawn upright for swinging |
+| `CharacterArt.swift` | Original cartoon art for all 6 presets + custom sluggers |
+| `BatArt.swift` | Original art for all 9 bat objects, drawn upright for swinging |
 | `ContentView.swift` | Screen router, Home, Character Select, Season Picker, Leaderboard |
 | `BuilderViews.swift` | Build-a-Slugger and Build-a-Bat workshops |
 | `GameView.swift` | The field: pitching, timing, flight, result card, plain background, panning camera, bouncing ball |
 
 ## What is stubbed (and what to wire up next)
 
-### 1. StoreKit purchases — STUBBED (simulated, no real charges)
-`StoreManager.stubMode` is `true`. Purchases simulate a short delay and
-succeed, and the UI labels them as simulated. To go live:
-- Create these products in App Store Connect (same bundle ID):
+### 1. StoreKit purchases — REAL (stubMode is false)
+`StoreManager.stubMode` is `false`. Purchases run through real StoreKit 2.
+To go live, create these products in App Store Connect (same bundle ID):
   - `com.tntfamily.howfar.customslugger` — non-consumable, $0.99
   - `com.tntfamily.howfar.custombat` — non-consumable, $0.99
-  - `com.tntfamily.howfar.swingpack5` — consumable, $1.00
-- Set `stubMode = false` in `StoreManager.swift`.
+  - `com.tntfamily.howfar.rankedrefill20` — consumable, $0.99
+  - `com.tntfamily.howfar.removeads` — non-consumable, $4.99
+- Set the app price tier to Free in App Store Connect.
 - Test in the sandbox / TestFlight before submitting.
 
 ### 2. Game Center leaderboard — LOCAL ONLY for now
@@ -128,6 +131,7 @@ happens until you:
 - The swing timing window and distance curve are tuned by feel
   (`GameView.swingNow()`); playtest on a device and adjust the 380-point
   scale or the 280/150 tier thresholds if hits feel too long or too short.
-- The Trump caricature is an original cartoon in a parody style; the
-  generic snowman and the "Classic Bat" name are deliberate choices to
-  avoid licensed-character and trademark issues at review.
+- Trump was removed from the game in build 16 (2026-11-06) — no real
+  people remain in the cast. The generic snowman and the "Classic Bat"
+  name are deliberate choices to avoid licensed-character and trademark
+  issues at review.

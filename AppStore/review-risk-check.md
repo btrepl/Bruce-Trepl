@@ -29,7 +29,13 @@ time, so two items don't come as surprises at review.
   than the 2026-10-27 version of this note suggested. A 13+ result is
   not a rejection — it just narrows the youngest audience.
 
-## 2. The Trump caricature — low risk, not zero, reviewer discretion
+## 2. The Trump caricature — REMOVED in build 16 (2026-11-06)
+
+Bruce decided to remove Trump from the game entirely. The PresetID case,
+his sprite + portrait + the Trump-based Robot Head variation, his Driver
+bat, and the listing mention are all gone as of build 16. The review risk
+in this section is now moot — there is no real person left in the game.
+Kept below for the record only.
 
 - Apple Guideline 1.1.1 covers defamatory / mean-spirited content about a
   targeted individual or group, and says professional political satirists
@@ -62,8 +68,12 @@ when the Developer account is active:
 | Bundle ID | com.tntfamily.howfar |
 | Custom Slugger (non-consumable, $0.99) | com.tntfamily.howfar.customslugger |
 | Custom Bat (non-consumable, $0.99) | com.tntfamily.howfar.custombat |
-| Swing Pack, 5 swings (consumable, $1.00) | com.tntfamily.howfar.swingpack5 |
+| Ranked Refill, 20 ranked swings (consumable, $0.99) | com.tntfamily.howfar.rankedrefill20 |
+| Remove Ads + Unlimited Ranked (non-consumable, $4.99) | com.tntfamily.howfar.removeads |
 | Game Center leaderboard | com.tntfamily.howfar.leaderboard |
+
+The app price tier is Free (build 16). The old swingpack5 product
+($1.00 for 5 swings) is retired; do not re-create it.
 
 After those products exist in App Store Connect, set `stubMode = false`
 in `Sources/StoreManager.swift` and test in TestFlight before submitting.
