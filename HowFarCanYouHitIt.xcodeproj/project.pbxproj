@@ -49,6 +49,14 @@
 			isa = PBXBuildFile;
 			fileRef = D4E5F6A7B8C95ABCD3E4F5A6 /* AdsManager.swift */;
 		};
+		A7B8C9D0E1F28DEF6A7B8C9 /* SeasonPass.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = F6A7B8C9D0E17CDF5A6B7C8 /* SeasonPass.swift */;
+		};
+		C9D0E1F2A3B40F108B9CAD0 /* SocialViews.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = B8C9D0E1F2A39EF07A8B9CA /* SocialViews.swift */;
+		};
 		F9EDFA6393AEC64604B31BDE /* Assets.xcassets in Resources */ = {
 			isa = PBXBuildFile;
 			fileRef = 74475E1D45E85A3A796AE7E4 /* Assets.xcassets */;
@@ -130,6 +138,20 @@
 			path = AdsManager.swift;
 			sourceTree = "<group>";
 		};
+		F6A7B8C9D0E17CDF5A6B7C8 /* SeasonPass.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = SeasonPass.swift;
+			path = SeasonPass.swift;
+			sourceTree = "<group>";
+		};
+		B8C9D0E1F2A39EF07A8B9CA /* SocialViews.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = SocialViews.swift;
+			path = SocialViews.swift;
+			sourceTree = "<group>";
+		};
 		74475E1D45E85A3A796AE7E4 /* Assets.xcassets */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = folder.assetcatalog;
@@ -199,6 +221,8 @@
 				4E7E20F4F01013A3A3CF87C5 /* Models.swift */,
 				38F919EEC4599BF05C33CB1F /* StoreManager.swift */,
 				D4E5F6A7B8C95ABCD3E4F5A6 /* AdsManager.swift */,
+				F6A7B8C9D0E17CDF5A6B7C8 /* SeasonPass.swift */,
+				B8C9D0E1F2A39EF07A8B9CA /* SocialViews.swift */,
 			);
 			name = Sources;
 			path = Sources;
@@ -278,6 +302,8 @@
 				8A81ABCE02B949771A4AF05B /* Models.swift in Sources */,
 				1D95A5192FE574789844D167 /* StoreManager.swift in Sources */,
 				E5F6A7B8C9D06BCDE4F5A6B7 /* AdsManager.swift in Sources */,
+				A7B8C9D0E1F28DEF6A7B8C9 /* SeasonPass.swift in Sources */,
+				C9D0E1F2A3B40F108B9CAD0 /* SocialViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,7 +314,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
@@ -314,7 +340,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
@@ -336,7 +362,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_GADApplicationIdentifier = "ca-app-pub-3940256099942544~1458002511";
@@ -366,7 +392,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_GADApplicationIdentifier = "ca-app-pub-3940256099942544~1458002511";

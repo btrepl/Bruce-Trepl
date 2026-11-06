@@ -21,7 +21,7 @@ import GoogleMobileAds
 import UIKit
 
 @MainActor
-final class AdsManager: ObservableObject {
+final class AdsManager: NSObject, ObservableObject {
     /// Google's official test rewarded ad unit ID (iOS). Replace with the
     /// real AdMob ad unit ID before submitting for real revenue.
     static let rewardedAdUnitID = "ca-app-pub-3940256099942544/1712485313"
@@ -43,15 +43,19 @@ final class AdsManager: ObservableObject {
     /// Preload a rewarded ad. Called at start and after each ad dismisses.
     func loadRewardedAd() {
         GADRewardedAd.load(withAdUnitID: Self.rewardedAdUnitID, request: GADRequest()) { [weak self] ad, error in
-            guard let self else { return }
-            if let error {
-                print("Rewarded ad failed to load: \(error.localizedDescription)")
-                self.isAdReady = false
-                return
+            // The load callback is a Sendable closure, so hop back to the
+            // main actor before touching this manager's state.
+            Task { @MainActor in
+                guard let self else { return }
+                if let error {
+                    print("Rewarded ad failed to load: \(error.localizedDescription)")
+                    self.isAdReady = false
+                    return
+                }
+                self.rewardedAd = ad
+                self.rewardedAd?.fullScreenContentDelegate = self
+                self.isAdReady = true
             }
-            self.rewardedAd = ad
-            self.rewardedAd?.fullScreenContentDelegate = self
-            self.isAdReady = true
         }
     }
 
