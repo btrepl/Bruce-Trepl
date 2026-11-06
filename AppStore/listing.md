@@ -25,7 +25,7 @@ How far can YOU hit it?
 
 Pick a slugger, step up to the plate, and smash a baseball as far as you can — measured in feet. Pick a season to decorate the field: Fall pumpkins on the ground, Christmas lights dangling, or a plain field.
 
-Choose from Santa, a golf-driving Trump, the Ballplayer, Bigfoot, and a funny Snowman — each with a signature bat, from a roll of gift wrap to a bare tree. Or build your own slugger and your own bat and take them to the plate.
+Choose from Santa, a golf-driving Trump, the Ballplayer, Bigfoot, and a funny Snowman — each with a signature bat, from a roll of gift wrap to a wooden club. Or build your own slugger and your own bat and take them to the plate.
 
 Time your swing, watch it fly, and climb the global leaderboard. You get 10 free swings every day — need more? Grab a 5-swing pack.
 

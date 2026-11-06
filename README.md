@@ -15,7 +15,7 @@ far it flies — measured in feet.
   - Santa — Gift Wrap Roll (Power 3, Speed 4)
   - Donald Trump — Driver, a golf driver (Power 4, Speed 4)
   - The Ballplayer — Classic Bat, a classic American baseball bat shape (Power 4, Speed 4)
-  - Bigfoot — Bare Tree, trunk and twigs with no leaves (Power 6, Speed 2)
+  - Bigfoot — Wooden Club, a chunky caveman-style club (Power 6, Speed 2)
   - Snowman — Ice Club, a chunky frozen club (Power 4, Speed 2)
 - **Build-a-Slugger** ($0.99 unlock): name, face style, expression, hat,
   jersey color. Smaller body, larger goofy head, cartoonish person look.

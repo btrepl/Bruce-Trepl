@@ -168,7 +168,10 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
         case .driver: return "Driver"
         // Generic classic American baseball bat shape. Never a brand name.
         case .classicBat: return "Classic Bat"
-        case .bareTree: return "Bare Tree"
+        // The case is still named bareTree (its raw value is stored in saved
+        // bats), but it now draws a wooden club — Bruce's call, 2026-11-05:
+        // the tree "didn't look like anything" next to a real club.
+        case .bareTree: return "Wooden Club"
         case .iceClub: return "Ice Club"
         case .cavemanClub: return "Caveman Club"
         case .baguette: return "Baguette"
@@ -199,7 +202,7 @@ struct Bat: Identifiable, Codable, Equatable {
             return Bat(id: "bat-classic", name: "Classic Bat",
                        object: .classicBat, power: 4, speed: 4, isCustom: false)
         case .bigfoot:
-            return Bat(id: "bat-baretree", name: "Bare Tree",
+            return Bat(id: "bat-baretree", name: "Wooden Club",
                        object: .bareTree, power: 6, speed: 2, isCustom: false)
         case .snowman:
             return Bat(id: "bat-iceclub", name: "Ice Club",
