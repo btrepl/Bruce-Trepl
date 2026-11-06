@@ -14,6 +14,7 @@ struct HowFarCanYouHitItApp: App {
     @StateObject private var gameState = GameState()
     @StateObject private var store = StoreManager()
     @StateObject private var gameCenter = GameCenterManager()
+    @StateObject private var ads = AdsManager()
 
     var body: some Scene {
         WindowGroup {
@@ -21,8 +22,10 @@ struct HowFarCanYouHitItApp: App {
                 .environmentObject(gameState)
                 .environmentObject(store)
                 .environmentObject(gameCenter)
+                .environmentObject(ads)
                 .onAppear {
                     gameCenter.authenticate()
+                    ads.start()
                     Task {
                         await store.restorePurchases()
                         gameState.setRemoveAdsUnlocked(store.removeAdsUnlocked)

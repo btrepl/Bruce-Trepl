@@ -12,6 +12,7 @@ struct GameView: View {
     @EnvironmentObject var game: GameState
     @EnvironmentObject var store: StoreManager
     @EnvironmentObject var gameCenter: GameCenterManager
+    @EnvironmentObject var ads: AdsManager
 
     private enum Phase { case idle, pitching, swinging, flying, result, tookPitch }
 
@@ -287,6 +288,22 @@ struct GameView: View {
                             .foregroundStyle(Color.white)
                             .cornerRadius(16)
                     }
+                    if !store.removeAdsUnlocked {
+                        Button {
+                            ads.showRewardedAd {
+                                game.addRankedSwings(5)
+                            }
+                        } label: {
+                            Label(ads.isAdReady ? "Watch an ad — +5 ranked swings" : "Ad loading…",
+                                  systemImage: "play.rectangle.fill")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.teal)
+                                .foregroundStyle(Color.white)
+                                .cornerRadius(16)
+                        }
+                        .disabled(!ads.isAdReady || ads.isShowingAd)
+                    }
                 }
             case .pitching:
                 Button("SWING!") { swingNow() }
@@ -499,6 +516,23 @@ struct GameView: View {
                         .background(Color.orange)
                         .foregroundStyle(Color.white)
                         .cornerRadius(14)
+                }
+                if !store.removeAdsUnlocked {
+                    Button {
+                        ads.showRewardedAd {
+                            game.addRankedSwings(5)
+                            phase = .idle
+                        }
+                    } label: {
+                        Label(ads.isAdReady ? "Watch an ad — +5 ranked swings" : "Ad loading…",
+                              systemImage: "play.rectangle.fill")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.teal)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(14)
+                    }
+                    .disabled(!ads.isAdReady || ads.isShowingAd)
                 }
             }
             Button("Back to Home") { game.screen = .home }

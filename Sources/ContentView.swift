@@ -34,6 +34,7 @@ struct ContentView: View {
 struct HomeView: View {
     @EnvironmentObject var game: GameState
     @EnvironmentObject var store: StoreManager
+    @EnvironmentObject var ads: AdsManager
 
     var body: some View {
         ScrollView {
@@ -139,6 +140,24 @@ struct HomeView: View {
                             .background(Color.orange)
                             .foregroundStyle(Color.white)
                             .cornerRadius(16)
+                    }
+                    // Rewarded ad: watch once for +5 ranked swings. Hidden
+                    // when Remove Ads is owned (ads are off for that player).
+                    if !store.removeAdsUnlocked {
+                        Button {
+                            ads.showRewardedAd {
+                                game.addRankedSwings(5)
+                            }
+                        } label: {
+                            Label(ads.isAdReady ? "Watch an ad — +5 ranked swings" : "Ad loading…",
+                                  systemImage: "play.rectangle.fill")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.teal)
+                                .foregroundStyle(Color.white)
+                                .cornerRadius(16)
+                        }
+                        .disabled(!ads.isAdReady || ads.isShowingAd)
                     }
                 }
 

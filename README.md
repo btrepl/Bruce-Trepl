@@ -101,8 +101,20 @@ To go live, create these products in App Store Connect (same bundle ID):
   - `com.tntfamily.howfar.custombat` — non-consumable, $0.99
   - `com.tntfamily.howfar.rankedrefill20` — consumable, $0.99
   - `com.tntfamily.howfar.removeads` — non-consumable, $4.99
+  - `com.tntfamily.howfar.coins1000` — consumable, $0.99
+  - `com.tntfamily.howfar.coins5000` — consumable, $2.99
+  - `com.tntfamily.howfar.seasonpass` — non-consumable, $4.99
 - Set the app price tier to Free in App Store Connect.
 - Test in the sandbox / TestFlight before submitting.
+
+### 1b. Rewarded ads — AdMob (test IDs for now)
+`Sources/AdsManager.swift` uses Google Mobile Ads via Swift Package
+Manager. The ad unit ID and the `GADApplicationIdentifier` build setting
+are Google's OFFICIAL TEST IDs, so TestFlight serves test ads. To earn
+real ad revenue, Bruce must create an AdMob account, create a Rewarded
+ad unit, and swap in the real ad unit ID (`AdsManager.rewardedAdUnitID`)
+and the real AdMob app ID (the `INFOPLIST_KEY_GADApplicationIdentifier`
+build setting in the Xcode project).
 
 ### 2. Game Center leaderboard — LOCAL ONLY for now
 Scores are stored on-device (top 20). `GameCenterManager` already signs
