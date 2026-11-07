@@ -23,7 +23,7 @@ struct GameView: View {
     @State private var isNewBest = false
     @State private var saying = ""
     @State private var tier: HitTier = .miss
-    @State private var swingAngle: Double = 15
+    @State private var swingAngle: Double = 20
     @State private var showSwoosh = false
     @State private var batterRotation: Double = 0
     @State private var batterShift: CGFloat = 0
@@ -602,7 +602,7 @@ struct GameView: View {
                 withAnimation(.easeOut(duration: 0.55)) {
                     batterRotation = 0
                     batterShift = 0
-                    swingAngle = 15
+                    swingAngle = 20
                     showSwoosh = false
                 }
             }

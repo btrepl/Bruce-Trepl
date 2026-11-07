@@ -512,20 +512,21 @@ struct BoneArt: View {
         ZStack {
             let bone = Color(red: 0.96, green: 0.93, blue: 0.85)
             let shade = Color(red: 0.82, green: 0.77, blue: 0.66)
-            // Shaft.
+            // Shaft, long enough that the bottom knobs reach the very
+            // bottom of the frame (the grip), so the bone is held.
             RoundedRectangle(cornerRadius: 7)
                 .fill(bone)
-                .frame(width: 14, height: 88)
+                .frame(width: 14, height: 100)
             // Knobby ends: two round bumps at the top (the hitting end)
             // and two at the bottom (the grip).
-            Circle().fill(bone).frame(width: 18, height: 18).offset(x: -8, y: -44)
-            Circle().fill(bone).frame(width: 18, height: 18).offset(x: 8, y: -44)
-            Circle().fill(bone).frame(width: 16, height: 16).offset(x: -7, y: 44)
-            Circle().fill(bone).frame(width: 16, height: 16).offset(x: 7, y: 44)
+            Circle().fill(bone).frame(width: 18, height: 18).offset(x: -8, y: -50)
+            Circle().fill(bone).frame(width: 18, height: 18).offset(x: 8, y: -50)
+            Circle().fill(bone).frame(width: 16, height: 16).offset(x: -7, y: 52)
+            Circle().fill(bone).frame(width: 16, height: 16).offset(x: 7, y: 52)
             // Shading down the shaft.
             RoundedRectangle(cornerRadius: 2)
                 .fill(shade.opacity(0.6))
-                .frame(width: 3, height: 70)
+                .frame(width: 3, height: 84)
                 .offset(x: -3, y: 0)
         }
     }
@@ -536,12 +537,13 @@ struct BoneArt: View {
 struct FishingPoleArt: View {
     var body: some View {
         ZStack {
-            // Tapered rod: narrow at the tip, thicker at the grip.
+            // Tapered rod: narrow at the tip, thicker at the grip. The
+            // butt reaches the very bottom of the frame (the grip).
             Path { p in
                 p.move(to: CGPoint(x: -2, y: -56))
                 p.addLine(to: CGPoint(x: 2, y: -56))
-                p.addLine(to: CGPoint(x: 4, y: 56))
-                p.addLine(to: CGPoint(x: -4, y: 56))
+                p.addLine(to: CGPoint(x: 5, y: 60))
+                p.addLine(to: CGPoint(x: -5, y: 60))
                 p.closeSubpath()
             }
             .fill(Color(red: 0.35, green: 0.25, blue: 0.15))
@@ -596,11 +598,12 @@ struct BroomArt: View {
                 .fill(Color(red: 0.45, green: 0.30, blue: 0.15))
                 .frame(width: 14, height: 7)
                 .offset(y: -8)
-            // Wooden handle (the grip).
+            // Wooden handle (the grip), reaching the very bottom of the
+            // frame so the broom is held.
             RoundedRectangle(cornerRadius: 3)
                 .fill(Color(red: 0.55, green: 0.38, blue: 0.22))
-                .frame(width: 8, height: 62)
-                .offset(y: 26)
+                .frame(width: 8, height: 66)
+                .offset(y: 27)
         }
     }
 }
@@ -644,15 +647,16 @@ struct NutcrackerArt: View {
                 .frame(width: 4, height: 4).offset(y: -14)
             Circle().fill(Color(red: 0.85, green: 0.70, blue: 0.25))
                 .frame(width: 4, height: 4).offset(y: -4)
-            // Legs (the grip).
+            // Legs (the grip), reaching the very bottom of the frame and
+            // meeting at the center so the hands wrap a solid grip.
             RoundedRectangle(cornerRadius: 3)
                 .fill(Color(red: 0.20, green: 0.20, blue: 0.25))
-                .frame(width: 9, height: 28)
-                .offset(x: -6, y: 38)
+                .frame(width: 11, height: 36)
+                .offset(x: -5.5, y: 42)
             RoundedRectangle(cornerRadius: 3)
                 .fill(Color(red: 0.20, green: 0.20, blue: 0.25))
-                .frame(width: 9, height: 28)
-                .offset(x: 6, y: 38)
+                .frame(width: 11, height: 36)
+                .offset(x: 5.5, y: 42)
         }
     }
 }
@@ -665,15 +669,16 @@ struct SealArt: View {
             let fur = Color(red: 0.55, green: 0.60, blue: 0.68)
             let belly = Color(red: 0.78, green: 0.81, blue: 0.85)
             // Streamlined body (held by the tail — the tail is the grip).
+            // The body reaches the very bottom of the frame (the grip).
             Capsule()
                 .fill(fur)
-                .frame(width: 26, height: 88)
-                .offset(y: -2)
+                .frame(width: 26, height: 106)
+                .offset(y: 7)
             // Lighter belly.
             Capsule()
                 .fill(belly)
-                .frame(width: 15, height: 66)
-                .offset(y: 2)
+                .frame(width: 15, height: 84)
+                .offset(y: 8)
             // Eyes on the head (top of the body).
             Circle().fill(Color.black).frame(width: 3, height: 3).offset(x: -6, y: -38)
             Circle().fill(Color.black).frame(width: 3, height: 3).offset(x: 6, y: -38)
@@ -692,12 +697,12 @@ struct SealArt: View {
             Ellipse()
                 .fill(fur)
                 .frame(width: 10, height: 16)
-                .offset(x: -6, y: 46)
+                .offset(x: -6, y: 52)
                 .rotationEffect(.degrees(-30))
             Ellipse()
                 .fill(fur)
                 .frame(width: 10, height: 16)
-                .offset(x: 6, y: 46)
+                .offset(x: 6, y: 52)
                 .rotationEffect(.degrees(30))
         }
     }
