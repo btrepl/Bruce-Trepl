@@ -27,6 +27,11 @@ struct BatArtView: View {
             case .fishingPole: FishingPoleArt()
             case .broom: BroomArt()
             case .nutcracker: NutcrackerArt()
+                // The nutcracker is a person-shape, so at the normal rest
+                // angle it reads as a little man standing up instead of a
+                // bat. Lean it a further 20 degrees so it is clearly a
+                // diagonal bat, not a standing figure.
+                .rotationEffect(.degrees(20), anchor: .bottom)
             case .seal: SealArt()
             }
         }
@@ -401,57 +406,59 @@ struct ScepterArt: View {
 struct MicrophoneArt: View {
     var body: some View {
         ZStack {
-            // Big round mic head with a silver grille.
+            // Big round mic head: a silver mesh-grille ball, like a
+            // classic handheld stage mic. Denser grille so it reads as
+            // mesh, not a plain ball.
             ZStack {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [Color(red: 0.95, green: 0.95, blue: 0.97), Color(red: 0.75, green: 0.78, blue: 0.82)],
+                            colors: [Color(red: 0.95, green: 0.95, blue: 0.97), Color(red: 0.72, green: 0.75, blue: 0.80)],
                             startPoint: .topLeading, endPoint: .bottomTrailing
                         )
                     )
-                // Grille crosshatch.
-                ForEach([-11, 0, 11], id: \.self) { x in
+                // Dense mesh grille: a 5x5 crosshatch clipped to the ball.
+                ForEach([-14, -7, 0, 7, 14], id: \.self) { x in
                     Rectangle()
-                        .fill(Color(red: 0.55, green: 0.58, blue: 0.62))
-                        .frame(width: 1.5, height: 36)
+                        .fill(Color(red: 0.45, green: 0.48, blue: 0.52))
+                        .frame(width: 1.5, height: 38)
                         .offset(x: CGFloat(x))
                 }
-                ForEach([-11, 0, 11], id: \.self) { y in
+                ForEach([-14, -7, 0, 7, 14], id: \.self) { y in
                     Rectangle()
-                        .fill(Color(red: 0.55, green: 0.58, blue: 0.62))
-                        .frame(width: 36, height: 1.5)
+                        .fill(Color(red: 0.45, green: 0.48, blue: 0.52))
+                        .frame(width: 38, height: 1.5)
                         .offset(y: CGFloat(y))
                 }
                 // Shine on the grille.
                 Circle()
-                    .fill(Color.white.opacity(0.5))
-                    .frame(width: 8, height: 8)
-                    .offset(x: -8, y: -8)
+                    .fill(Color.white.opacity(0.55))
+                    .frame(width: 9, height: 9)
+                    .offset(x: -9, y: -9)
             }
-            .frame(width: 36, height: 36)
+            .frame(width: 38, height: 38)
             .clipShape(Circle())
-            .offset(y: -28)
+            .offset(y: -29)
             // Gold ring around the mic head.
             Circle()
                 .stroke(Color(red: 0.85, green: 0.65, blue: 0.20), lineWidth: 3)
-                .frame(width: 36, height: 36)
-                .offset(y: -28)
+                .frame(width: 38, height: 38)
+                .offset(y: -29)
             // Gold collar under the head.
             RoundedRectangle(cornerRadius: 2)
                 .fill(Color(red: 0.85, green: 0.65, blue: 0.20))
-                .frame(width: 16, height: 7)
+                .frame(width: 17, height: 7)
                 .offset(y: -8)
-            // Gold handle.
-            RoundedRectangle(cornerRadius: 4)
+            // Gold handle: thicker now, so it reads as a mic handle.
+            RoundedRectangle(cornerRadius: 5)
                 .fill(Color(red: 0.85, green: 0.65, blue: 0.20))
-                .frame(width: 10, height: 62)
+                .frame(width: 13, height: 62)
                 .offset(y: 26)
             // Pink grip bands on the handle.
             ForEach([12, 30], id: \.self) { y in
                 RoundedRectangle(cornerRadius: 2)
                     .fill(Color(red: 0.90, green: 0.45, blue: 0.65))
-                    .frame(width: 13, height: 5)
+                    .frame(width: 15, height: 5)
                     .offset(y: CGFloat(y))
             }
             // Gold knob at the bottom.
@@ -537,36 +544,46 @@ struct BoneArt: View {
 struct FishingPoleArt: View {
     var body: some View {
         ZStack {
-            // Tapered rod: narrow at the tip, thicker at the grip. The
-            // butt reaches the very bottom of the frame (the grip).
-            Path { p in
-                p.move(to: CGPoint(x: -2, y: -56))
-                p.addLine(to: CGPoint(x: 2, y: -56))
-                p.addLine(to: CGPoint(x: 5, y: 60))
-                p.addLine(to: CGPoint(x: -5, y: 60))
-                p.closeSubpath()
+            // Rod: thin tip section up top, thick grip section at the
+            // bottom where the hands wrap it. Plain shapes only (no
+            // Path) so the rod lands exactly where the grip is.
+            RoundedRectangle(cornerRadius: 2.5)
+                .fill(Color(red: 0.35, green: 0.25, blue: 0.15))
+                .frame(width: 5, height: 66)
+                .offset(y: -26)
+            // Thick butt/grip: the part the hands hold, reaching the very
+            // bottom of the frame (the grip).
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color(red: 0.30, green: 0.20, blue: 0.12))
+                .frame(width: 12, height: 56)
+                .offset(y: 32)
+            // Grip bands on the butt.
+            ForEach([22, 40], id: \.self) { y in
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color(red: 0.55, green: 0.40, blue: 0.25))
+                    .frame(width: 13, height: 4)
+                    .offset(y: CGFloat(y))
             }
-            .fill(Color(red: 0.35, green: 0.25, blue: 0.15))
             // Line guides: tiny rings on the rod.
             Circle().stroke(Color(red: 0.60, green: 0.60, blue: 0.65), lineWidth: 1.5)
                 .frame(width: 7, height: 7).offset(y: -30)
             Circle().stroke(Color(red: 0.60, green: 0.60, blue: 0.65), lineWidth: 1.5)
                 .frame(width: 7, height: 7).offset(y: -8)
-            // Reel: a silver spool beside the grip.
+            // Reel: a silver spool just above the hands, where a real
+            // reel sits when you hold a rod.
             Circle()
                 .fill(Color(red: 0.75, green: 0.78, blue: 0.82))
-                .frame(width: 15, height: 15)
-                .offset(x: -10, y: 26)
+                .frame(width: 18, height: 18)
+                .offset(x: -12, y: 18)
             Circle()
                 .fill(Color(red: 0.30, green: 0.30, blue: 0.35))
-                .frame(width: 6, height: 6)
-                .offset(x: -10, y: 26)
-            // Fishing line from the tip down to the reel.
-            Path { p in
-                p.move(to: CGPoint(x: 0, y: -56))
-                p.addQuadCurve(to: CGPoint(x: -10, y: 26), control: CGPoint(x: 8, y: -10))
-            }
-            .stroke(Color.white.opacity(0.85), lineWidth: 1)
+                .frame(width: 8, height: 8)
+                .offset(x: -12, y: 18)
+            // Reel handle.
+            RoundedRectangle(cornerRadius: 1)
+                .fill(Color(red: 0.30, green: 0.30, blue: 0.35))
+                .frame(width: 3, height: 10)
+                .offset(x: -12, y: 28)
         }
     }
 }
@@ -577,22 +594,23 @@ struct BroomArt: View {
     var body: some View {
         ZStack {
             // Bristles: a wide straw fan at the top (the hitting end).
-            Path { p in
-                p.move(to: CGPoint(x: -5, y: -6))
-                p.addLine(to: CGPoint(x: 5, y: -6))
-                p.addLine(to: CGPoint(x: 16, y: -56))
-                p.addLine(to: CGPoint(x: -16, y: -56))
-                p.closeSubpath()
+            // Built from plain shapes (no Path) so every part renders.
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color(red: 0.90, green: 0.75, blue: 0.30))
+                .frame(width: 32, height: 48)
+                .offset(y: -32)
+            // Bristle strands: darker vertical lines for texture.
+            ForEach([-12, -6, 0, 6, 12], id: \.self) { x in
+                Rectangle()
+                    .fill(Color(red: 0.70, green: 0.55, blue: 0.18))
+                    .frame(width: 1.5, height: 44)
+                    .offset(x: CGFloat(x), y: -32)
             }
-            .fill(Color(red: 0.90, green: 0.75, blue: 0.30))
-            // Bristle strands.
-            ForEach([-10, -4, 2, 8], id: \.self) { x in
-                Path { p in
-                    p.move(to: CGPoint(x: CGFloat(x), y: -10))
-                    p.addLine(to: CGPoint(x: CGFloat(x) * 1.6, y: -54))
-                }
-                .stroke(Color(red: 0.70, green: 0.55, blue: 0.18), lineWidth: 1)
-            }
+            // Bristle tips: a slightly darker band at the very top edge.
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 0.78, green: 0.62, blue: 0.22))
+                .frame(width: 32, height: 6)
+                .offset(y: -53)
             // Binding band where the bristles meet the handle.
             RoundedRectangle(cornerRadius: 2)
                 .fill(Color(red: 0.45, green: 0.30, blue: 0.15))
@@ -666,33 +684,46 @@ struct NutcrackerArt: View {
 struct SealArt: View {
     var body: some View {
         ZStack {
-            let fur = Color(red: 0.55, green: 0.60, blue: 0.68)
-            let belly = Color(red: 0.78, green: 0.81, blue: 0.85)
-            // Streamlined body (held by the tail — the tail is the grip).
-            // The body reaches the very bottom of the frame (the grip).
+            let fur = Color(red: 0.62, green: 0.52, blue: 0.42)
+            let belly = Color(red: 0.93, green: 0.87, blue: 0.76)
+            let dark = Color(red: 0.35, green: 0.28, blue: 0.20)
+            // Chubby cute seal body, held by the tail. The body reaches
+            // the very bottom of the frame (the grip).
             Capsule()
                 .fill(fur)
-                .frame(width: 26, height: 106)
+                .frame(width: 28, height: 106)
                 .offset(y: 7)
-            // Lighter belly.
+            // Light belly.
             Capsule()
                 .fill(belly)
-                .frame(width: 15, height: 84)
-                .offset(y: 8)
-            // Eyes on the head (top of the body).
-            Circle().fill(Color.black).frame(width: 3, height: 3).offset(x: -6, y: -38)
-            Circle().fill(Color.black).frame(width: 3, height: 3).offset(x: 6, y: -38)
-            // Whisker dots.
-            Circle().fill(Color(red: 0.35, green: 0.38, blue: 0.42))
-                .frame(width: 2, height: 2).offset(x: -9, y: -32)
-            Circle().fill(Color(red: 0.35, green: 0.38, blue: 0.42))
-                .frame(width: 2, height: 2).offset(x: 9, y: -32)
-            // Side flipper.
+                .frame(width: 17, height: 78)
+                .offset(y: 12)
+            // Front flippers at the sides.
             Ellipse()
                 .fill(fur)
-                .frame(width: 8, height: 18)
-                .offset(x: -14, y: 6)
+                .frame(width: 9, height: 20)
+                .offset(x: -15, y: 8)
                 .rotationEffect(.degrees(25))
+            Ellipse()
+                .fill(fur)
+                .frame(width: 9, height: 20)
+                .offset(x: 15, y: 8)
+                .rotationEffect(.degrees(-25))
+            // Big cute eyes.
+            Circle().fill(Color.white).frame(width: 7, height: 7).offset(x: -6, y: -36)
+            Circle().fill(Color.white).frame(width: 7, height: 7).offset(x: 6, y: -36)
+            Circle().fill(Color.black).frame(width: 3.5, height: 3.5).offset(x: -6, y: -36)
+            Circle().fill(Color.black).frame(width: 3.5, height: 3.5).offset(x: 6, y: -36)
+            // Nose.
+            Ellipse().fill(dark).frame(width: 4, height: 3).offset(x: 0, y: -30)
+            // Pink cheeks.
+            Circle().fill(Color(red: 0.95, green: 0.65, blue: 0.60).opacity(0.7))
+                .frame(width: 5, height: 5).offset(x: -10, y: -28)
+            Circle().fill(Color(red: 0.95, green: 0.65, blue: 0.60).opacity(0.7))
+                .frame(width: 5, height: 5).offset(x: 10, y: -28)
+            // Whisker dots.
+            Circle().fill(dark).frame(width: 1.5, height: 1.5).offset(x: -9, y: -30)
+            Circle().fill(dark).frame(width: 1.5, height: 1.5).offset(x: 9, y: -30)
             // Tail flukes at the bottom (the grip).
             Ellipse()
                 .fill(fur)

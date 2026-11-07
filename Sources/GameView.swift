@@ -148,10 +148,11 @@ struct GameView: View {
                                 y: geo.size.height - 32
                             )
 
-                        // Pitcher machine (left)
+                        // Pitcher machine (left), set back a little for
+                        // more room to pitch and hit.
                         PitchMachineView()
                             .shadow(color: Color.black.opacity(0.2), radius: 3, x: 2, y: 2)
-                            .position(x: 74, y: geo.size.height - 119)
+                            .position(x: 54, y: geo.size.height - 119)
 
                         // Fall pumpkins sitting on the ground, left of the
                         // plate (season decor; out of the ball's path).
@@ -178,6 +179,7 @@ struct GameView: View {
                                 .offset(x: -87, y: 10)
                         }
                         .rotationEffect(.degrees(batterRotation), anchor: .bottom)
+                        .scaleEffect(0.8, anchor: .bottom)
                         .offset(x: batterShift)
                         .position(x: geo.size.width - 108, y: geo.size.height - 150)
 
@@ -311,7 +313,7 @@ struct GameView: View {
         case .idle:
             // Ball resting in the pitcher's hand
             BallView(kind: game.slugger.ballKind, isGolden: isGoldenBallNow)
-                .position(x: 108, y: ballY)
+                .position(x: 88, y: ballY)
         case .swinging:
             // Ball frozen at the plate while the batter winds up.
             BallView(kind: game.slugger.ballKind, isGolden: isGoldenBallNow)
@@ -319,7 +321,7 @@ struct GameView: View {
         case .pitching:
             let elapsed = date.timeIntervalSince(pitchStart)
             let progress = min(max(elapsed / currentPitchDuration, 0), 1)
-            let x = 108 + (plateX - 108) * progress
+            let x = 88 + (plateX - 88) * progress
             let y = ballY - sin(progress * .pi) * 26
             BallView(kind: game.slugger.ballKind, isGolden: isGoldenBallNow)
                 .position(x: x, y: y)
@@ -1147,18 +1149,19 @@ struct FishView: View {
         ZStack {
             let bodyColor = isGolden
                 ? Color(red: 0.95, green: 0.78, blue: 0.30)
-                : Color(red: 0.72, green: 0.80, blue: 0.86)
+                : Color(red: 0.20, green: 0.60, blue: 0.95)
+            let bellyColor = isGolden
+                ? Color(red: 1.0, green: 0.90, blue: 0.60)
+                : Color(red: 0.75, green: 0.88, blue: 1.0)
             let darkColor = isGolden
                 ? Color(red: 0.65, green: 0.45, blue: 0.05)
-                : Color(red: 0.45, green: 0.55, blue: 0.65)
+                : Color(red: 0.10, green: 0.40, blue: 0.75)
             // Tail fin (left).
-            Path { p in
-                p.move(to: CGPoint(x: -8, y: 15))
-                p.addLine(to: CGPoint(x: -15, y: 9))
-                p.addLine(to: CGPoint(x: -15, y: 21))
-                p.closeSubpath()
-            }
-            .fill(bodyColor)
+            Ellipse()
+                .fill(darkColor)
+                .frame(width: 10, height: 13)
+                .offset(x: -11, y: 0)
+                .rotationEffect(.degrees(20))
             // Body.
             Ellipse()
                 .fill(
@@ -1167,18 +1170,31 @@ struct FishView: View {
                         startPoint: .top, endPoint: .bottom
                     )
                 )
-                .frame(width: 22, height: 11)
+                .frame(width: 23, height: 15)
                 .offset(x: 2)
+            // Light belly.
+            Ellipse()
+                .fill(bellyColor)
+                .frame(width: 14, height: 8)
+                .offset(x: 3, y: 4)
             // Top fin.
-            Path { p in
-                p.move(to: CGPoint(x: 0, y: 10))
-                p.addLine(to: CGPoint(x: 5, y: 6))
-                p.addLine(to: CGPoint(x: 8, y: 10))
-                p.closeSubpath()
-            }
-            .fill(darkColor)
-            // Eye.
-            Circle().fill(Color.black).frame(width: 2.5, height: 2.5).offset(x: 9, y: 14)
+            Ellipse()
+                .fill(darkColor)
+                .frame(width: 9, height: 6)
+                .offset(x: 0, y: -8)
+                .rotationEffect(.degrees(-15))
+            // Pectoral fin.
+            Ellipse()
+                .fill(darkColor)
+                .frame(width: 6, height: 9)
+                .offset(x: 1, y: 5)
+                .rotationEffect(.degrees(30))
+            // Big eye.
+            Circle().fill(Color.white).frame(width: 7, height: 7).offset(x: 9, y: -3)
+            Circle().fill(Color.black).frame(width: 3.5, height: 3.5).offset(x: 9.5, y: -3)
+            Circle().fill(Color.white).frame(width: 1.5, height: 1.5).offset(x: 10.5, y: -4.5)
+            // Smile.
+            Circle().fill(darkColor).frame(width: 2, height: 2).offset(x: 12, y: 2)
         }
         .frame(width: 30, height: 30)
     }
