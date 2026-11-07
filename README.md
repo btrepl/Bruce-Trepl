@@ -16,7 +16,7 @@ far it flies — measured in feet.
   - The Ballplayer — Classic Bat, a classic American baseball bat shape (Power 4, Speed 4)
   - Bigfoot — Wooden Club, a chunky caveman-style club (Power 6, Speed 2)
   - Snowman — Ice Club, a chunky frozen club (Power 4, Speed 2)
-  - Princess Belle — Microphone (Power 5, Speed 3)
+  - Princess Tillie — Microphone (Power 5, Speed 3)
   - Indiana Jane — Machete (Power 3, Speed 5)
 - **Build-a-Slugger** ($0.99 unlock): name, face style, expression, hat,
   jersey color. Smaller body, larger goofy head, cartoonish person look.

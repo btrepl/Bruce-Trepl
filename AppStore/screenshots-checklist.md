@@ -20,7 +20,7 @@ Do NOT use the web prototype for store screenshots (per AppStore/listing.md).
   no shot may show a roast / small-hit saying — hype lines and neutral
   result cards only.
 1. Gameplay mid-swing — baseball, plain background, a big hit.
-2. Character picker — all six sluggers with signature bats visible (the original five minus Trump, plus Princess Belle and Indiana Jane, added in build 15).
+2. Character picker — all six sluggers with signature bats visible (the original five minus Trump, plus Princess Tillie and Indiana Jane, added in build 15).
 3. Season picker — Fall (pumpkins on the ground) / Christmas (lights dangling) / Normal (plain field).
 4. Result card — "It flew X feet!" with a hype saying (big hit).
 5. Build-a-Slugger — a custom cartoon slugger (small body, large goofy head).

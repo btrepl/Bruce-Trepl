@@ -69,7 +69,7 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
         case .ballplayer: return "The Ballplayer"
         case .bigfoot: return "Bigfoot"
         case .snowman: return "Snowman"
-        case .princess: return "Princess Belle"
+        case .princess: return "Princess Tillie"
         case .adventurer: return "Indiana Jane"
         }
     }
@@ -114,7 +114,7 @@ enum SpriteCatalog {
                    headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.68, y: 0.18)),
         SpriteSpec(id: "snowman", displayName: "Snowman",
                    headEnd: 0.480, torsoEnd: 0.739, grip: CGPoint(x: 0.84, y: 0.20)),
-        SpriteSpec(id: "princess", displayName: "Princess Belle",
+        SpriteSpec(id: "princess", displayName: "Princess Tillie",
                    headEnd: 0.45, torsoEnd: 0.62, grip: CGPoint(x: 0.78, y: 0.38)),
         SpriteSpec(id: "adventurer", displayName: "Indiana Jane",
                    headEnd: 0.45, torsoEnd: 0.60, grip: CGPoint(x: 0.80, y: 0.38)),

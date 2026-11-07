@@ -391,7 +391,7 @@ struct ScepterArt: View {
     }
 }
 
-// MARK: - Microphone (Princess Belle's bat: a large gold microphone)
+// MARK: - Microphone (Princess Tillie's bat: a large gold microphone)
 
 struct MicrophoneArt: View {
     var body: some View {

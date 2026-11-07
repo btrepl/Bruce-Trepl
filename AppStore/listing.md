@@ -29,7 +29,7 @@ How far can YOU hit it?
 
 Pick a slugger, step up to the plate, and smash a baseball as far as you can — measured in feet. Pick a season to decorate the field: Fall pumpkins on the ground, Christmas lights dangling, or a plain field.
 
-Choose from Santa, the Ballplayer, Bigfoot, a funny Snowman, Princess Belle, and Indiana Jane — each with a signature bat, from a roll of gift wrap to a large microphone. Or build your own slugger and your own bat and take them to the plate.
+Choose from Santa, the Ballplayer, Bigfoot, a funny Snowman, Princess Tillie, and Indiana Jane — each with a signature bat, from a roll of gift wrap to a large microphone. Or build your own slugger and your own bat and take them to the plate.
 
 Time your swing, watch it fly, and climb the leaderboard. Practice as much as you want for free, or play Ranked — 10 ranked swings a day — to climb the board and earn coins.
 
