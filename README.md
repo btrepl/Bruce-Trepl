@@ -1,7 +1,7 @@
 # How Far Can You Hit It? — Native iOS Version
 
 A native SwiftUI rebuild of the "How Far Can You Hit It?" batting game.
-Pick a slugger, time your swing at a pitched **baseball**, and see how
+Pick a slugger, time your swing at a pitched ball, and see how
 far it flies — measured in feet.
 
 > **IMPORTANT — NOT COMPILED HERE.** This code was written on a Linux VM
@@ -11,13 +11,18 @@ far it flies — measured in feet.
 
 ## The game
 
-- **6 free sluggers, each with a signature bat that auto-equips:**
+- **11 free sluggers, each with a signature bat that auto-equips:**
   - Santa — Gift Wrap Roll (Power 3, Speed 4)
   - The Ballplayer — Classic Bat, a classic American baseball bat shape (Power 4, Speed 4)
   - Bigfoot — Wooden Club, a chunky caveman-style club (Power 6, Speed 2)
   - Snowman — Ice Club, a chunky frozen club (Power 4, Speed 2)
   - Princess Tillie — Microphone (Power 5, Speed 3)
   - Indiana Jane — Machete (Power 3, Speed 5)
+  - Big Dog — Bone (Power 6, Speed 2); hits a tennis ball
+  - Cat — Fishing Pole (Power 3, Speed 5); hits a ball of yarn
+  - Scarecrow — Broom (Power 4, Speed 3); hits a pumpkin
+  - Gnome — Nutcracker (Power 5, Speed 2); hits a Christmas ornament
+  - Polar Bear — Seal (Power 6, Speed 2); hits a fish
 - **Build-a-Slugger** ($0.99 unlock): name, face style, expression, hat,
   jersey color. Smaller body, larger goofy head, cartoonish person look.
 - **Build-a-Bat** ($0.99 unlock): pick an object, split 8 points between
@@ -86,7 +91,7 @@ far it flies — measured in feet.
 | `GameState.swift` | Shared state: selection, daily swings, scores, persistence |
 | `StoreManager.swift` | In-app purchases (StoreKit 2, currently stubbed) |
 | `GameCenterManager.swift` | Game Center sign-in + score submission (integration point) |
-| `CharacterArt.swift` | Original cartoon art for all 6 presets + custom sluggers |
+| `CharacterArt.swift` | Original cartoon art for all 11 presets + custom sluggers |
 | `BatArt.swift` | Original art for all 9 bat objects, drawn upright for swinging |
 | `ContentView.swift` | Screen router, Home, Character Select, Season Picker, Leaderboard |
 | `BuilderViews.swift` | Build-a-Slugger and Build-a-Bat workshops |

@@ -23,6 +23,11 @@ struct BatArtView: View {
             case .machete: MacheteArt()
             case .microphone: MicrophoneArt()
             case .goldenBat: GoldenBatArt()
+            case .bone: BoneArt()
+            case .fishingPole: FishingPoleArt()
+            case .broom: BroomArt()
+            case .nutcracker: NutcrackerArt()
+            case .seal: SealArt()
             }
         }
         .frame(width: 40, height: 120)
@@ -496,6 +501,204 @@ struct MacheteArt: View {
                 .fill(Color(red: 0.75, green: 0.60, blue: 0.25))
                 .frame(width: 18, height: 5)
                 .offset(y: 22)
+        }
+    }
+}
+
+// MARK: - Bone (Big Dog's bat)
+
+struct BoneArt: View {
+    var body: some View {
+        ZStack {
+            let bone = Color(red: 0.96, green: 0.93, blue: 0.85)
+            let shade = Color(red: 0.82, green: 0.77, blue: 0.66)
+            // Shaft.
+            RoundedRectangle(cornerRadius: 7)
+                .fill(bone)
+                .frame(width: 14, height: 88)
+            // Knobby ends: two round bumps at the top (the hitting end)
+            // and two at the bottom (the grip).
+            Circle().fill(bone).frame(width: 18, height: 18).offset(x: -8, y: -44)
+            Circle().fill(bone).frame(width: 18, height: 18).offset(x: 8, y: -44)
+            Circle().fill(bone).frame(width: 16, height: 16).offset(x: -7, y: 44)
+            Circle().fill(bone).frame(width: 16, height: 16).offset(x: 7, y: 44)
+            // Shading down the shaft.
+            RoundedRectangle(cornerRadius: 2)
+                .fill(shade.opacity(0.6))
+                .frame(width: 3, height: 70)
+                .offset(x: -3, y: 0)
+        }
+    }
+}
+
+// MARK: - Fishing Pole (Cat's bat)
+
+struct FishingPoleArt: View {
+    var body: some View {
+        ZStack {
+            // Tapered rod: narrow at the tip, thicker at the grip.
+            Path { p in
+                p.move(to: CGPoint(x: -2, y: -56))
+                p.addLine(to: CGPoint(x: 2, y: -56))
+                p.addLine(to: CGPoint(x: 4, y: 56))
+                p.addLine(to: CGPoint(x: -4, y: 56))
+                p.closeSubpath()
+            }
+            .fill(Color(red: 0.35, green: 0.25, blue: 0.15))
+            // Line guides: tiny rings on the rod.
+            Circle().stroke(Color(red: 0.60, green: 0.60, blue: 0.65), lineWidth: 1.5)
+                .frame(width: 7, height: 7).offset(y: -30)
+            Circle().stroke(Color(red: 0.60, green: 0.60, blue: 0.65), lineWidth: 1.5)
+                .frame(width: 7, height: 7).offset(y: -8)
+            // Reel: a silver spool beside the grip.
+            Circle()
+                .fill(Color(red: 0.75, green: 0.78, blue: 0.82))
+                .frame(width: 15, height: 15)
+                .offset(x: -10, y: 26)
+            Circle()
+                .fill(Color(red: 0.30, green: 0.30, blue: 0.35))
+                .frame(width: 6, height: 6)
+                .offset(x: -10, y: 26)
+            // Fishing line from the tip down to the reel.
+            Path { p in
+                p.move(to: CGPoint(x: 0, y: -56))
+                p.addQuadCurve(to: CGPoint(x: -10, y: 26), control: CGPoint(x: 8, y: -10))
+            }
+            .stroke(Color.white.opacity(0.85), lineWidth: 1)
+        }
+    }
+}
+
+// MARK: - Broom (Scarecrow's bat)
+
+struct BroomArt: View {
+    var body: some View {
+        ZStack {
+            // Bristles: a wide straw fan at the top (the hitting end).
+            Path { p in
+                p.move(to: CGPoint(x: -5, y: -6))
+                p.addLine(to: CGPoint(x: 5, y: -6))
+                p.addLine(to: CGPoint(x: 16, y: -56))
+                p.addLine(to: CGPoint(x: -16, y: -56))
+                p.closeSubpath()
+            }
+            .fill(Color(red: 0.90, green: 0.75, blue: 0.30))
+            // Bristle strands.
+            ForEach([-10, -4, 2, 8], id: \.self) { x in
+                Path { p in
+                    p.move(to: CGPoint(x: CGFloat(x), y: -10))
+                    p.addLine(to: CGPoint(x: CGFloat(x) * 1.6, y: -54))
+                }
+                .stroke(Color(red: 0.70, green: 0.55, blue: 0.18), lineWidth: 1)
+            }
+            // Binding band where the bristles meet the handle.
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 0.45, green: 0.30, blue: 0.15))
+                .frame(width: 14, height: 7)
+                .offset(y: -8)
+            // Wooden handle (the grip).
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(red: 0.55, green: 0.38, blue: 0.22))
+                .frame(width: 8, height: 62)
+                .offset(y: 26)
+        }
+    }
+}
+
+// MARK: - Nutcracker (Gnome's bat)
+
+struct NutcrackerArt: View {
+    var body: some View {
+        ZStack {
+            // Tall dark hat with a gold band.
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(red: 0.15, green: 0.15, blue: 0.20))
+                .frame(width: 24, height: 16)
+                .offset(y: -50)
+            RoundedRectangle(cornerRadius: 1)
+                .fill(Color(red: 0.85, green: 0.70, blue: 0.25))
+                .frame(width: 24, height: 3)
+                .offset(y: -44)
+            // Face.
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color(red: 0.95, green: 0.80, blue: 0.65))
+                .frame(width: 20, height: 13)
+                .offset(y: -36)
+            // Mustache.
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(Color(red: 0.25, green: 0.25, blue: 0.30))
+                .frame(width: 14, height: 3)
+                .offset(y: -32)
+            // Red jacket.
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color(red: 0.80, green: 0.15, blue: 0.15))
+                .frame(width: 26, height: 52)
+                .offset(y: -2)
+            // White belt.
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.white)
+                .frame(width: 26, height: 6)
+                .offset(y: 8)
+            // Gold buttons.
+            Circle().fill(Color(red: 0.85, green: 0.70, blue: 0.25))
+                .frame(width: 4, height: 4).offset(y: -14)
+            Circle().fill(Color(red: 0.85, green: 0.70, blue: 0.25))
+                .frame(width: 4, height: 4).offset(y: -4)
+            // Legs (the grip).
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(red: 0.20, green: 0.20, blue: 0.25))
+                .frame(width: 9, height: 28)
+                .offset(x: -6, y: 38)
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(red: 0.20, green: 0.20, blue: 0.25))
+                .frame(width: 9, height: 28)
+                .offset(x: 6, y: 38)
+        }
+    }
+}
+
+// MARK: - Seal (Polar Bear's bat)
+
+struct SealArt: View {
+    var body: some View {
+        ZStack {
+            let fur = Color(red: 0.55, green: 0.60, blue: 0.68)
+            let belly = Color(red: 0.78, green: 0.81, blue: 0.85)
+            // Streamlined body (held by the tail — the tail is the grip).
+            Capsule()
+                .fill(fur)
+                .frame(width: 26, height: 88)
+                .offset(y: -2)
+            // Lighter belly.
+            Capsule()
+                .fill(belly)
+                .frame(width: 15, height: 66)
+                .offset(y: 2)
+            // Eyes on the head (top of the body).
+            Circle().fill(Color.black).frame(width: 3, height: 3).offset(x: -6, y: -38)
+            Circle().fill(Color.black).frame(width: 3, height: 3).offset(x: 6, y: -38)
+            // Whisker dots.
+            Circle().fill(Color(red: 0.35, green: 0.38, blue: 0.42))
+                .frame(width: 2, height: 2).offset(x: -9, y: -32)
+            Circle().fill(Color(red: 0.35, green: 0.38, blue: 0.42))
+                .frame(width: 2, height: 2).offset(x: 9, y: -32)
+            // Side flipper.
+            Ellipse()
+                .fill(fur)
+                .frame(width: 8, height: 18)
+                .offset(x: -14, y: 6)
+                .rotationEffect(.degrees(25))
+            // Tail flukes at the bottom (the grip).
+            Ellipse()
+                .fill(fur)
+                .frame(width: 10, height: 16)
+                .offset(x: -6, y: 46)
+                .rotationEffect(.degrees(-30))
+            Ellipse()
+                .fill(fur)
+                .frame(width: 10, height: 16)
+                .offset(x: 6, y: 46)
+                .rotationEffect(.degrees(30))
         }
     }
 }

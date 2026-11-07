@@ -47,7 +47,7 @@ enum Season: String, CaseIterable, Identifiable, Codable {
 
 // MARK: - Preset characters
 
-/// The six free out-of-the-box sluggers.
+/// The eleven free out-of-the-box sluggers.
 enum PresetID: String, CaseIterable, Identifiable, Codable {
     case santa
     case ballplayer
@@ -55,6 +55,11 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
     case snowman
     case princess
     case adventurer
+    case dog
+    case cat
+    case scarecrow
+    case gnome
+    case polarBear
 
     var id: String { rawValue }
 
@@ -71,6 +76,11 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
         case .snowman: return "Snowman"
         case .princess: return "Princess Tillie"
         case .adventurer: return "Indiana Jane"
+        case .dog: return "Big Dog"
+        case .cat: return "Cat"
+        case .scarecrow: return "Scarecrow"
+        case .gnome: return "Gnome"
+        case .polarBear: return "Polar Bear"
         }
     }
 
@@ -82,13 +92,54 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
         case .snowman: return "Tall, skinny, and freezing cold."
         case .princess: return "Royalty with a really big microphone."
         case .adventurer: return "She explores. She swings. She conquers."
+        case .dog: return "A very good boy with a very big bone."
+        case .cat: return "Nine lives, one fishing pole."
+        case .scarecrow: return "Guardian of the pumpkin patch."
+        case .gnome: return "Small gnome, big nutcracker."
+        case .polarBear: return "The biggest bat in the Arctic."
+        }
+    }
+
+    /// What this slugger hits. Most hit a baseball; the animals and
+    /// friends each hit their own thing.
+    var ballKind: BallKind {
+        switch self {
+        case .dog: return .tennisBall
+        case .cat: return .yarnBall
+        case .scarecrow: return .pumpkin
+        case .gnome: return .ornament
+        case .polarBear: return .fish
+        default: return .baseball
+        }
+    }
+}
+
+/// What a slugger hits: a baseball for most, their own thing for the
+/// animals and friends. The name reads after "A" or "The" ("A tennis
+/// ball is coming", "The pumpkin sailed by").
+enum BallKind: String, CaseIterable, Codable {
+    case baseball
+    case tennisBall
+    case yarnBall
+    case pumpkin
+    case ornament
+    case fish
+
+    var name: String {
+        switch self {
+        case .baseball: return "baseball"
+        case .tennisBall: return "tennis ball"
+        case .yarnBall: return "ball of yarn"
+        case .pumpkin: return "pumpkin"
+        case .ornament: return "Christmas ornament"
+        case .fish: return "fish"
         }
     }
 }
 
 // MARK: - Sprite catalog (illustrated characters)
 
-/// One illustrated sprite in the catalog: the five presets plus the
+/// One illustrated sprite in the catalog: the presets plus the
 /// Build-a-Slugger variations. Cut lines are fractions of the image height;
 /// the sprites are cropped at 92% (home plate + ground shadow removed), so
 /// the fractions below are relative to the cropped image. The grip is where
@@ -118,6 +169,16 @@ enum SpriteCatalog {
                    headEnd: 0.45, torsoEnd: 0.62, grip: CGPoint(x: 0.78, y: 0.38)),
         SpriteSpec(id: "adventurer", displayName: "Indiana Jane",
                    headEnd: 0.45, torsoEnd: 0.60, grip: CGPoint(x: 0.80, y: 0.38)),
+        SpriteSpec(id: "dog", displayName: "Big Dog",
+                   headEnd: 0.42, torsoEnd: 0.78, grip: CGPoint(x: 0.84, y: 0.28)),
+        SpriteSpec(id: "cat", displayName: "Cat",
+                   headEnd: 0.46, torsoEnd: 0.80, grip: CGPoint(x: 0.85, y: 0.36)),
+        SpriteSpec(id: "scarecrow", displayName: "Scarecrow",
+                   headEnd: 0.45, torsoEnd: 0.68, grip: CGPoint(x: 0.80, y: 0.33)),
+        SpriteSpec(id: "gnome", displayName: "Gnome",
+                   headEnd: 0.42, torsoEnd: 0.72, grip: CGPoint(x: 0.72, y: 0.30)),
+        SpriteSpec(id: "polarBear", displayName: "Polar Bear",
+                   headEnd: 0.40, torsoEnd: 0.78, grip: CGPoint(x: 0.82, y: 0.27)),
         SpriteSpec(id: "santa-yardcap", displayName: "Yard-Cap Santa",
                    headEnd: 0.500, torsoEnd: 0.728, grip: CGPoint(x: 0.75, y: 0.29)),
         SpriteSpec(id: "pumpkin-head", displayName: "Pumpkin Head",
@@ -169,6 +230,11 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
     case machete
     case microphone
     case goldenBat
+    case bone
+    case fishingPole
+    case broom
+    case nutcracker
+    case seal
 
     var id: String { rawValue }
 
@@ -196,6 +262,11 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
         case .machete: return "Machete"
         case .microphone: return "Microphone"
         case .goldenBat: return "Golden Bat"
+        case .bone: return "Bone"
+        case .fishingPole: return "Fishing Pole"
+        case .broom: return "Broom"
+        case .nutcracker: return "Nutcracker"
+        case .seal: return "Seal"
         }
     }
 }
@@ -234,7 +305,7 @@ struct Bat: Identifiable, Codable, Equatable {
 
     static let maxUpgradeLevel = 5
 
-    /// Signature bats for the six preset sluggers. Each carries a power
+    /// Signature bats for the eleven preset sluggers. Each carries a power
     /// boost: the heavy clubs hit hardest, the light ones less so.
     static func signatureBat(for preset: PresetID) -> Bat {
         switch preset {
@@ -262,6 +333,28 @@ struct Bat: Identifiable, Codable, Equatable {
             return Bat(id: "bat-machete", name: "Machete",
                        object: .machete, power: 3, speed: 5, isCustom: false,
                        powerBoost: 0.06)
+        case .dog:
+            return Bat(id: "bat-bone", name: "Bone",
+                       object: .bone, power: 6, speed: 2, isCustom: false,
+                       powerBoost: 0.09)
+        case .cat:
+            return Bat(id: "bat-fishingpole", name: "Fishing Pole",
+                       object: .fishingPole, power: 3, speed: 5, isCustom: false,
+                       powerBoost: 0.07)
+        case .scarecrow:
+            return Bat(id: "bat-broom", name: "Broom",
+                       object: .broom, power: 4, speed: 3, isCustom: false,
+                       powerBoost: 0.01)
+        case .gnome:
+            return Bat(id: "bat-nutcracker", name: "Nutcracker",
+                       object: .nutcracker, power: 5, speed: 2, isCustom: false,
+                       powerBoost: 0.02)
+        case .polarBear:
+            // The seal is a massive club, same +10% as Bigfoot's club —
+            // the two biggest bats in the game.
+            return Bat(id: "bat-seal", name: "Seal",
+                       object: .seal, power: 6, speed: 2, isCustom: false,
+                       powerBoost: 0.10)
         }
     }
 
@@ -317,7 +410,7 @@ enum HatStyle: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-/// A slugger: either one of the five presets or a custom build.
+/// A slugger: either one of the presets or a custom build.
 /// Customs are built from illustrated sprite parts: a head, a torso, and
 /// legs, each picked from the 20-entry sprite catalog.
 struct Slugger: Identifiable, Codable, Equatable {
@@ -339,6 +432,9 @@ struct Slugger: Identifiable, Codable, Equatable {
                 preset: preset, face: .swoop, hat: .none,
                 jerseyColor: .red, isCustom: false)
     }
+
+    /// What this slugger hits. A custom slugger hits a baseball.
+    var ballKind: BallKind { preset?.ballKind ?? .baseball }
 
     static let defaultCustom = Slugger(id: "slugger-custom", name: "My Slugger",
                                        preset: nil, face: .swoop, hat: .cap,

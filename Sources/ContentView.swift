@@ -44,7 +44,7 @@ struct HomeView: View {
                     .multilineTextAlignment(.center)
                     .padding(.top, 24)
 
-                Text("A baseball is coming. How far can you hit it?")
+                Text("A \(game.slugger.ballKind.name) is coming. How far can you hit it?")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -95,7 +95,7 @@ struct HomeView: View {
                 ))
                 .font(.subheadline)
 
-                // Mode picker: Classic, Derby, Timing Streak, Pitch Challenge.
+                // Mode picker: Classic, Derby, Timing Streak, Pitch Challenge, Golden Ball.
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Mode").bold()
                     Picker("Mode", selection: Binding(

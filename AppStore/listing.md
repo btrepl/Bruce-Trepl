@@ -27,9 +27,9 @@ baseball,slugger,homerun,pumpkin,christmas,party,arcade,funny,family,game
 ## Description
 How far can YOU hit it?
 
-Pick a slugger, step up to the plate, and smash a baseball as far as you can — measured in feet. Pick a season to decorate the field: Fall pumpkins on the ground, Christmas lights dangling, or a plain field.
+Pick a slugger, step up to the plate, and smash a ball as far as you can — measured in feet. Pick a season to decorate the field: Fall pumpkins on the ground, Christmas lights dangling, or a plain field.
 
-Choose from Santa, the Ballplayer, Bigfoot, a funny Snowman, Princess Tillie, and Indiana Jane — each with a signature bat, from a roll of gift wrap to a large microphone. Or build your own slugger and your own bat and take them to the plate.
+Choose from Santa, the Ballplayer, Bigfoot, a funny Snowman, Princess Tillie, Indiana Jane, Big Dog (bone bat, tennis ball), Cat (fishing pole, ball of yarn), Scarecrow (broom, pumpkin), Gnome (nutcracker, Christmas ornament), and Polar Bear (seal bat, fish) — each with a signature bat, from a roll of gift wrap to a large microphone. Or build your own slugger and your own bat and take them to the plate.
 
 Time your swing, watch it fly, and climb the leaderboard. Practice as much as you want for free, or play Ranked — 10 ranked swings a day — to climb the board and earn coins.
 
@@ -44,7 +44,7 @@ Features:
 • Season pass — earn XP from ranked hits, climb 10 levels, claim coins on the free track or unlock the $4.99 premium track for more coins and a Golden Bat
 • Daily rewards and quests — claim a daily gift (streaks pay more) and finish 3 quests a day for bonus coins
 • Rewarded ads — out of ranked swings? Watch an ad for 5 more. Ads never interrupt play, and Remove Ads turns them off
-• 4 ways to play — Classic, Home Run Derby (10 pitches, total distance), Timing Streak (chain perfect hits), and Pitch Challenge (fastballs, curves, changeups)
+• 5 ways to play — Classic, Home Run Derby (10 pitches, total distance), Timing Streak (chain perfect hits), Pitch Challenge (fastballs, curves, changeups), and Golden Ball (10 balls, score points by distance — one golden ball is worth double)
 
 ## Age rating (estimate)
 9+ — cartoon humor, mild language in the roast sayings, no realistic violence. Final rating comes from Apple's questionnaire in App Store Connect.

@@ -43,6 +43,17 @@ struct GameView: View {
     @State private var pitchType: PitchType = .fastball
     @State private var lastPerfect = false
 
+    // Golden Ball mode: 10 balls, points by distance, one random golden
+    // ball worth double.
+    @State private var pointsTotal = 0
+    @State private var pointsLog: [Int] = []
+    @State private var lastPoints = 0
+    @State private var lastWasGolden = false
+    @State private var goldenBallIndex = 1
+    @State private var flyingGolden = false
+    @State private var isNewPointsBest = false
+    @State private var tookGoldenBall = false
+
     private let pitchDuration = 1.4
     private let sweetSpot = 0.85
 
@@ -50,6 +61,26 @@ struct GameView: View {
     /// own speed; otherwise the standard 1.4s.
     private var currentPitchDuration: Double {
         game.playMode == .pitchChallenge ? pitchType.travelTime : pitchDuration
+    }
+
+    /// The pitch number currently being played (1-based).
+    private var currentPitchNumber: Int {
+        game.playMode.pitchCount - pitchesLeft + 1
+    }
+
+    /// True when the ball currently being pitched is the golden one.
+    private var isGoldenBallNow: Bool {
+        game.playMode == .goldenBall && currentPitchNumber == goldenBallIndex
+    }
+
+    /// Per-ball points for a finished Golden Ball game, e.g.
+    /// "+2 · +5 · −5 · +16★" with ★ on the golden ball.
+    private var pointsBreakdown: String {
+        pointsLog.enumerated().map { i, pts in
+            let sign = pts > 0 ? "+" : ""
+            let star = (i + 1) == goldenBallIndex ? "★" : ""
+            return "\(sign)\(pts)\(star)"
+        }.joined(separator: " · ")
     }
 
     /// Reset the multi-pitch state for a new game. Called when the game
@@ -63,6 +94,15 @@ struct GameView: View {
         lastPerfect = false
         pitchType = PitchType.allCases.randomElement() ?? .fastball
         phase = .idle
+        // Golden Ball: fresh points, and one random ball (1–10) is golden.
+        pointsTotal = 0
+        pointsLog = []
+        lastPoints = 0
+        lastWasGolden = false
+        goldenBallIndex = Int.random(in: 1...game.playMode.pitchCount)
+        flyingGolden = false
+        isNewPointsBest = false
+        tookGoldenBall = false
     }
 
     /// True when the current game is over (all pitches used).
@@ -149,6 +189,11 @@ struct GameView: View {
                     .animation(.easeOut(duration: 0.6), value: phase)
                 }
 
+                // Fireworks for a huge hit (over 450 feet) — in any mode.
+                if finalDistance > 450 && (phase == .flying || phase == .result) {
+                    FireworksView()
+                }
+
                 // HUD + controls (fixed, never pans)
                 VStack {
                     HStack {
@@ -181,6 +226,15 @@ struct GameView: View {
                             if game.playMode == .streak {
                                 Text("Streak: \(streak)")
                                     .font(.subheadline)
+                            }
+                            if game.playMode == .goldenBall {
+                                Text("Points: \(pointsTotal)")
+                                    .font(.subheadline)
+                                if isGoldenBallNow && (phase == .idle || phase == .pitching) {
+                                    Text("★ Golden Ball · 2x")
+                                        .font(.subheadline).bold()
+                                        .foregroundStyle(Color(red: 0.85, green: 0.65, blue: 0.10))
+                                }
                             }
                             Text("Pitch \(game.playMode.pitchCount - pitchesLeft + 1) of \(game.playMode.pitchCount)")
                                 .font(.subheadline)
@@ -256,24 +310,26 @@ struct GameView: View {
         switch phase {
         case .idle:
             // Ball resting in the pitcher's hand
-            BaseballView()
+            BallView(kind: game.slugger.ballKind, isGolden: isGoldenBallNow)
                 .position(x: 108, y: ballY)
         case .swinging:
             // Ball frozen at the plate while the batter winds up.
-            BaseballView()
+            BallView(kind: game.slugger.ballKind, isGolden: isGoldenBallNow)
                 .position(x: plateX, y: ballY)
         case .pitching:
             let elapsed = date.timeIntervalSince(pitchStart)
             let progress = min(max(elapsed / currentPitchDuration, 0), 1)
             let x = 108 + (plateX - 108) * progress
             let y = ballY - sin(progress * .pi) * 26
-            BaseballView()
+            BallView(kind: game.slugger.ballKind, isGolden: isGoldenBallNow)
                 .position(x: x, y: y)
             // Ball got past the batter without a swing: no swing used.
             if progress >= 1 {
                 Color.clear.onAppear {
                     DispatchQueue.main.async {
                         if phase == .pitching {
+                            // Capture before pitchesLeft is decremented.
+                            let wasGolden = isGoldenBallNow
                             // Taking a pitch counts as a pitch used in the
                             // 10-pitch modes, and it breaks a timing streak.
                             if game.playMode != .classic {
@@ -281,6 +337,13 @@ struct GameView: View {
                                 streak = 0
                                 if game.playMode == .pitchChallenge {
                                     pitchType = PitchType.allCases.randomElement() ?? .fastball
+                                }
+                                if game.playMode == .goldenBall {
+                                    // A taken pitch scores 0 for that ball,
+                                    // golden or not — the chance is gone.
+                                    tookGoldenBall = wasGolden
+                                    lastPoints = 0
+                                    pointsLog.append(0)
                                 }
                                 if gameOver && game.mode == .ranked {
                                     recordModeResult()
@@ -305,12 +368,12 @@ struct GameView: View {
             ForEach([0.18, 0.12, 0.06], id: \.self) { lag in
                 if elapsed - lag > 0 {
                     let trail = flightPosition(elapsed: elapsed - lag, geo: geo)
-                    BaseballView()
+                    BallView(kind: game.slugger.ballKind, isGolden: flyingGolden)
                         .opacity(lag > 0.15 ? 0.12 : lag > 0.09 ? 0.22 : 0.35)
                         .position(trail)
                 }
             }
-            BaseballView()
+            BallView(kind: game.slugger.ballKind, isGolden: flyingGolden)
                 .position(point)
             if elapsed >= flightDuration + 0.45 {
                 Color.clear.onAppear {
@@ -406,6 +469,10 @@ struct GameView: View {
     private func swingNow() {
         guard phase == .pitching else { return }
         let progress = min(Date().timeIntervalSince(pitchStart) / currentPitchDuration, 1)
+        // Whether the ball being swung at is the golden one — capture
+        // before pitchesLeft is decremented below.
+        let goldenThisBall = isGoldenBallNow
+        flyingGolden = goldenThisBall
         guard progress < 1 else {
             phase = .tookPitch
             return
@@ -455,6 +522,16 @@ struct GameView: View {
             }
         case .pitchChallenge:
             pitchType = PitchType.allCases.randomElement() ?? .fastball
+        case .goldenBall:
+            derbyBest = max(derbyBest, distance)
+            // A whiff scores 0 (the −5 is only for a hit under 100 feet).
+            // A golden ball doubles whatever the ball is worth.
+            let base = distance > 0 ? GameState.pointsFor(distance: distance) : 0
+            let pts = goldenThisBall ? base * 2 : base
+            lastPoints = pts
+            lastWasGolden = goldenThisBall
+            pointsTotal += pts
+            pointsLog.append(pts)
         case .classic:
             break
         }
@@ -534,13 +611,17 @@ struct GameView: View {
 
     /// Record the mode's final score to the local leaderboard and Game
     /// Center. Classic records the single hit; Derby records the total;
-    /// Streak and Pitch Challenge record the best single hit.
+    /// Streak, Pitch Challenge, and Golden Ball record the best single
+    /// hit. Golden Ball also records its total points as a separate best.
     private func recordModeResult() {
         let score: Int
         switch game.playMode {
         case .classic: score = finalDistance
         case .derby: score = derbyTotal
-        case .streak, .pitchChallenge: score = derbyBest
+        case .streak, .pitchChallenge, .goldenBall: score = derbyBest
+        }
+        if game.playMode == .goldenBall {
+            isNewPointsBest = game.recordGoldenBall(points: pointsTotal)
         }
         guard score > 0 else { return }
         isNewBest = game.recordHit(distance: score)
@@ -610,6 +691,36 @@ struct GameView: View {
                      : "\(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left · Next: \(pitchType.title)")
                     .font(.headline)
                     .multilineTextAlignment(.center)
+            case .goldenBall:
+                VStack(spacing: 4) {
+                    if gameOver {
+                        Text("Golden Ball total: \(pointsTotal) points")
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                        Text(pointsBreakdown)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        if isNewPointsBest {
+                            Text("NEW BEST POINTS!")
+                                .font(.headline)
+                                .foregroundStyle(Color.orange)
+                        }
+                    } else {
+                        Text("Points: \(pointsTotal) · \(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left")
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                        if lastWasGolden {
+                            Text("★ Golden Ball! This ball: \(lastPoints > 0 ? "+" : "")\(lastPoints) points")
+                                .font(.subheadline).bold()
+                                .foregroundStyle(Color(red: 0.85, green: 0.65, blue: 0.10))
+                        } else if finalDistance > 0 || lastPoints != 0 {
+                            Text("This ball: \(lastPoints > 0 ? "+" : "")\(lastPoints) points")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
 
             // Challenge a friend: share a distance card. Works for ranked
@@ -720,9 +831,21 @@ struct GameView: View {
         VStack(spacing: 12) {
             Text("Took the pitch!")
                 .font(.title2).bold()
-            Text("No swing used. The baseball sailed by.")
+            Text("No swing used. The \(game.slugger.ballKind.name) sailed by.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
+            if game.playMode == .goldenBall {
+                if tookGoldenBall {
+                    Text("That was the golden ball — the 2x chance is gone.")
+                        .font(.subheadline).bold()
+                        .foregroundStyle(Color(red: 0.85, green: 0.65, blue: 0.10))
+                        .multilineTextAlignment(.center)
+                } else {
+                    Text("Points: \(pointsTotal)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
             if game.playMode != .classic && !gameOver {
                 Text("\(pitchesLeft) pitch\(pitchesLeft == 1 ? "" : "es") left")
                     .font(.subheadline)
@@ -754,19 +877,86 @@ struct GameView: View {
     }
 }
 
+/// Fireworks for a huge hit (over 450 feet) — in any mode. A few bursts
+/// of sparks that expand and fade, looping while the result is up.
+struct FireworksView: View {
+    private let bursts: [(x: CGFloat, y: CGFloat, color: Color)] = [
+        (0.25, 0.28, .red),
+        (0.70, 0.20, .yellow),
+        (0.50, 0.42, .blue),
+        (0.85, 0.45, .green),
+        (0.15, 0.55, .pink),
+    ]
+    @State private var animate = false
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                ForEach(bursts.indices, id: \.self) { i in
+                    let b = bursts[i]
+                    ZStack {
+                        ForEach(0..<12, id: \.self) { j in
+                            let angle = CGFloat(j) * .pi / 6
+                            Circle()
+                                .fill(b.color)
+                                .frame(width: 6, height: 6)
+                                .offset(x: animate ? cos(angle) * 46 : 0,
+                                        y: animate ? sin(angle) * 46 : 0)
+                                .opacity(animate ? 0 : 1)
+                        }
+                    }
+                    .position(x: geo.size.width * b.x, y: geo.size.height * b.y)
+                    .animation(
+                        .easeOut(duration: 1.0)
+                        .repeatForever(autoreverses: false)
+                        .delay(Double(i) * 0.25),
+                        value: animate
+                    )
+                }
+            }
+        }
+        .allowsHitTesting(false)
+        .onAppear {
+            animate = true
+        }
+    }
+}
+
 // MARK: - Field pieces
 
-/// The pitched ball: a regular baseball — white with red seams.
-struct BaseballView: View {
+/// The ball a slugger hits, by kind. Most hit a baseball; the animals
+/// and friends each hit their own thing. A golden ball (Golden Ball mode)
+/// renders gold in whatever shape it is.
+struct BallView: View {
+    var kind: BallKind
+    var isGolden: Bool = false
+
     var body: some View {
+        switch kind {
+        case .baseball: BaseballView(isGolden: isGolden)
+        case .tennisBall: TennisBallView(isGolden: isGolden)
+        case .yarnBall: YarnBallView(isGolden: isGolden)
+        case .pumpkin: PumpkinView(isGolden: isGolden)
+        case .ornament: OrnamentView(isGolden: isGolden)
+        case .fish: FishView(isGolden: isGolden)
+        }
+    }
+}
+
+/// The pitched ball: a regular baseball — white with red seams.
+/// A golden ball reads as special — used for the Golden Ball mode.
+struct BaseballView: View {
+    var isGolden: Bool = false
+
+    var body: some View {
+        let seamColor = isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color.red
         ZStack {
             Circle()
                 .fill(
                     RadialGradient(
-                        gradient: Gradient(colors: [
-                            Color.white,
-                            Color(red: 0.88, green: 0.88, blue: 0.90)
-                        ]),
+                        gradient: Gradient(colors: isGolden
+                            ? [Color(red: 1.0, green: 0.85, blue: 0.35), Color(red: 0.85, green: 0.60, blue: 0.10)]
+                            : [Color.white, Color(red: 0.88, green: 0.88, blue: 0.90)]),
                         center: .topLeading,
                         startRadius: 2,
                         endRadius: 16
@@ -779,25 +969,216 @@ struct BaseballView: View {
                 p.move(to: CGPoint(x: 7, y: 4))
                 p.addQuadCurve(to: CGPoint(x: 7, y: 26), control: CGPoint(x: 13, y: 15))
             }
-            .stroke(Color.red, lineWidth: 1.6)
+            .stroke(seamColor, lineWidth: 1.6)
             Path { p in
                 p.move(to: CGPoint(x: 23, y: 4))
                 p.addQuadCurve(to: CGPoint(x: 23, y: 26), control: CGPoint(x: 17, y: 15))
             }
-            .stroke(Color.red, lineWidth: 1.6)
+            .stroke(seamColor, lineWidth: 1.6)
             // Stitch ticks across the seams
             ForEach([9, 14, 19], id: \.self) { y in
                 Path { p in
                     p.move(to: CGPoint(x: 5, y: CGFloat(y)))
                     p.addLine(to: CGPoint(x: 10, y: CGFloat(y) + 1))
                 }
-                .stroke(Color.red, lineWidth: 1.2)
+                .stroke(seamColor, lineWidth: 1.2)
                 Path { p in
                     p.move(to: CGPoint(x: 20, y: CGFloat(y) + 1))
                     p.addLine(to: CGPoint(x: 25, y: CGFloat(y)))
                 }
-                .stroke(Color.red, lineWidth: 1.2)
+                .stroke(seamColor, lineWidth: 1.2)
             }
+        }
+        .frame(width: 30, height: 30)
+    }
+}
+
+/// A tennis ball — bright yellow-green with white curved seams.
+/// Big Dog's ball.
+struct TennisBallView: View {
+    var isGolden: Bool = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: isGolden
+                            ? [Color(red: 1.0, green: 0.85, blue: 0.35), Color(red: 0.85, green: 0.60, blue: 0.10)]
+                            : [Color(red: 0.85, green: 0.92, blue: 0.35), Color(red: 0.62, green: 0.76, blue: 0.18)]),
+                        center: .topLeading,
+                        startRadius: 2,
+                        endRadius: 16
+                    )
+                )
+            // The classic curved seams, left and right.
+            Path { p in
+                p.move(to: CGPoint(x: 6, y: 2))
+                p.addQuadCurve(to: CGPoint(x: 6, y: 28), control: CGPoint(x: 13, y: 15))
+            }
+            .stroke(isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color.white, lineWidth: 2)
+            Path { p in
+                p.move(to: CGPoint(x: 24, y: 2))
+                p.addQuadCurve(to: CGPoint(x: 24, y: 28), control: CGPoint(x: 17, y: 15))
+            }
+            .stroke(isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color.white, lineWidth: 2)
+        }
+        .frame(width: 30, height: 30)
+    }
+}
+
+/// A ball of yarn — soft pink-red with wound wrap lines. Cat's ball.
+struct YarnBallView: View {
+    var isGolden: Bool = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: isGolden
+                            ? [Color(red: 1.0, green: 0.85, blue: 0.35), Color(red: 0.85, green: 0.60, blue: 0.10)]
+                            : [Color(red: 0.95, green: 0.55, blue: 0.60), Color(red: 0.80, green: 0.30, blue: 0.38)]),
+                        center: .topLeading,
+                        startRadius: 2,
+                        endRadius: 16
+                    )
+                )
+            // Wound wrap lines across the ball.
+            ForEach([-6, 0, 6], id: \.self) { y in
+                Path { p in
+                    p.move(to: CGPoint(x: 2, y: 15 + CGFloat(y)))
+                    p.addQuadCurve(to: CGPoint(x: 28, y: 15 + CGFloat(y)), control: CGPoint(x: 15, y: 8 + CGFloat(y)))
+                }
+                .stroke(isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color(red: 0.65, green: 0.20, blue: 0.28), lineWidth: 1.5)
+            }
+            // A loose yarn end curling off the side.
+            Path { p in
+                p.move(to: CGPoint(x: 24, y: 22))
+                p.addQuadCurve(to: CGPoint(x: 30, y: 28), control: CGPoint(x: 28, y: 24))
+            }
+            .stroke(isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color(red: 0.65, green: 0.20, blue: 0.28), lineWidth: 1.5)
+        }
+        .frame(width: 30, height: 30)
+    }
+}
+
+/// A pumpkin — orange with ridges and a stem. Scarecrow's ball.
+struct PumpkinView: View {
+    var isGolden: Bool = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: isGolden
+                            ? [Color(red: 1.0, green: 0.85, blue: 0.35), Color(red: 0.85, green: 0.60, blue: 0.10)]
+                            : [Color(red: 0.98, green: 0.60, blue: 0.15), Color(red: 0.85, green: 0.40, blue: 0.05)]),
+                        center: .topLeading,
+                        startRadius: 2,
+                        endRadius: 16
+                    )
+                )
+            // Ridges down the sides.
+            Path { p in
+                p.move(to: CGPoint(x: 10, y: 4))
+                p.addQuadCurve(to: CGPoint(x: 10, y: 26), control: CGPoint(x: 6, y: 15))
+            }
+            .stroke(isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color(red: 0.70, green: 0.30, blue: 0.02), lineWidth: 1.5)
+            Path { p in
+                p.move(to: CGPoint(x: 20, y: 4))
+                p.addQuadCurve(to: CGPoint(x: 20, y: 26), control: CGPoint(x: 24, y: 15))
+            }
+            .stroke(isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color(red: 0.70, green: 0.30, blue: 0.02), lineWidth: 1.5)
+            // Stem on top.
+            RoundedRectangle(cornerRadius: 1)
+                .fill(isGolden ? Color(red: 0.65, green: 0.45, blue: 0.05) : Color(red: 0.35, green: 0.45, blue: 0.15))
+                .frame(width: 4, height: 6)
+                .offset(y: -14)
+        }
+        .frame(width: 30, height: 30)
+    }
+}
+
+/// A Christmas ornament — a shiny red bauble with a gold cap.
+/// Gnome's ball.
+struct OrnamentView: View {
+    var isGolden: Bool = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: isGolden
+                            ? [Color(red: 1.0, green: 0.85, blue: 0.35), Color(red: 0.85, green: 0.60, blue: 0.10)]
+                            : [Color(red: 0.90, green: 0.20, blue: 0.25), Color(red: 0.62, green: 0.08, blue: 0.12)]),
+                        center: .topLeading,
+                        startRadius: 2,
+                        endRadius: 16
+                    )
+                )
+            // Shiny highlight.
+            Ellipse()
+                .fill(Color.white.opacity(0.5))
+                .frame(width: 8, height: 5)
+                .offset(x: -6, y: -7)
+                .rotationEffect(.degrees(-30))
+            // Gold cap and hanger loop on top.
+            RoundedRectangle(cornerRadius: 1)
+                .fill(Color(red: 0.85, green: 0.70, blue: 0.25))
+                .frame(width: 8, height: 4)
+                .offset(y: -14)
+            Circle()
+                .stroke(Color(red: 0.85, green: 0.70, blue: 0.25), lineWidth: 1.5)
+                .frame(width: 4, height: 4)
+                .offset(y: -18)
+        }
+        .frame(width: 30, height: 30)
+    }
+}
+
+/// A fish — silver-blue, swimming right. Polar Bear's ball.
+struct FishView: View {
+    var isGolden: Bool = false
+
+    var body: some View {
+        ZStack {
+            let bodyColor = isGolden
+                ? Color(red: 0.95, green: 0.78, blue: 0.30)
+                : Color(red: 0.72, green: 0.80, blue: 0.86)
+            let darkColor = isGolden
+                ? Color(red: 0.65, green: 0.45, blue: 0.05)
+                : Color(red: 0.45, green: 0.55, blue: 0.65)
+            // Tail fin (left).
+            Path { p in
+                p.move(to: CGPoint(x: -8, y: 15))
+                p.addLine(to: CGPoint(x: -15, y: 9))
+                p.addLine(to: CGPoint(x: -15, y: 21))
+                p.closeSubpath()
+            }
+            .fill(bodyColor)
+            // Body.
+            Ellipse()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [bodyColor, darkColor]),
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
+                .frame(width: 22, height: 11)
+                .offset(x: 2)
+            // Top fin.
+            Path { p in
+                p.move(to: CGPoint(x: 0, y: 10))
+                p.addLine(to: CGPoint(x: 5, y: 6))
+                p.addLine(to: CGPoint(x: 8, y: 10))
+                p.closeSubpath()
+            }
+            .fill(darkColor)
+            // Eye.
+            Circle().fill(Color.black).frame(width: 2.5, height: 2.5).offset(x: 9, y: 14)
         }
         .frame(width: 30, height: 30)
     }

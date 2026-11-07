@@ -16,12 +16,13 @@ enum GameMode: String, Codable {
 }
 
 /// Which kind of game to play. Classic is one pitch, one swing. Derby,
-/// Timing Streak, and Pitch Challenge are 10-pitch modes.
+/// Timing Streak, Pitch Challenge, and Golden Ball are 10-pitch modes.
 enum PlayMode: String, CaseIterable, Codable {
     case classic
     case derby
     case streak
     case pitchChallenge
+    case goldenBall
 
     var title: String {
         switch self {
@@ -29,6 +30,7 @@ enum PlayMode: String, CaseIterable, Codable {
         case .derby: return "Home Run Derby"
         case .streak: return "Timing Streak"
         case .pitchChallenge: return "Pitch Challenge"
+        case .goldenBall: return "Golden Ball"
         }
     }
 
@@ -38,6 +40,7 @@ enum PlayMode: String, CaseIterable, Codable {
         case .derby: return "10 pitches — total distance wins"
         case .streak: return "10 pitches — chain perfect hits"
         case .pitchChallenge: return "10 pitches — fastballs, curves, changeups"
+        case .goldenBall: return "10 balls — score points by distance · one golden ball is worth double"
         }
     }
 
@@ -45,7 +48,7 @@ enum PlayMode: String, CaseIterable, Codable {
     var pitchCount: Int {
         switch self {
         case .classic: return 1
-        case .derby, .streak, .pitchChallenge: return 10
+        case .derby, .streak, .pitchChallenge, .goldenBall: return 10
         }
     }
 }
@@ -92,6 +95,7 @@ final class GameState: ObservableObject {
     @Published var customBats: [Bat] = []
     @Published var leaderboard: [LeaderboardEntry] = []
     @Published var lifetimeBest: Int = 0
+    @Published var goldenBallBest: Int = 0  // best total points in Golden Ball mode
     @Published var coins: Int = 0
 
     // MARK: - Daily rewards, quests, season pass, achievements
@@ -137,6 +141,7 @@ final class GameState: ObservableObject {
         static let claimedPremium = "hf ClaimedPremium"
         static let premiumPass = "hf PremiumPass"
         static let goldenBat = "hf GoldenBat"
+        static let goldenBallBest = "hfGoldenBallBest"
         static let totalCoinsEarned = "hf TotalCoinsEarned"
         static let totalRankedSwings = "hf TotalRankedSwings"
         static let season = "hf Season"
@@ -442,7 +447,7 @@ final class GameState: ObservableObject {
 
     // MARK: - Scores
 
-    /// Set the play mode (Classic / Derby / Timing Streak / Pitch Challenge).
+    /// Set the play mode (Classic / Derby / Timing Streak / Pitch Challenge / Golden Ball).
     func setPlayMode(_ value: PlayMode) {
         playMode = value
         defaults.set(value.rawValue, forKey: Keys.playMode)
@@ -471,6 +476,34 @@ final class GameState: ObservableObject {
         return isBest
     }
 
+    /// Points for a hit in Golden Ball mode, by distance in feet.
+    /// A whiff (0 feet) scores 0, not −5 — the −5 is only for a hit
+    /// that lands short of 100 feet. (The golden ball doubles whatever
+    /// the ball is worth, so a short golden hit is −10.)
+    static func pointsFor(distance: Int) -> Int {
+        switch distance {
+        case ..<100: return -5
+        case 100...150: return 1
+        case 151...200: return 2
+        case 201...250: return 3
+        case 251...325: return 4
+        case 326...400: return 5
+        case 401...450: return 6
+        case 451...475: return 8
+        case 476...500: return 10
+        default: return 12  // 501+
+        }
+    }
+
+    /// Record a finished Golden Ball game. Returns true on a new best.
+    @discardableResult
+    func recordGoldenBall(points: Int) -> Bool {
+        guard points > goldenBallBest else { return false }
+        goldenBallBest = points
+        defaults.set(goldenBallBest, forKey: Keys.goldenBallBest)
+        return true
+    }
+
     // MARK: - Persistence
 
     private func loadPersistedState() {
@@ -494,6 +527,7 @@ final class GameState: ObservableObject {
             quests = decoded
         }
         lifetimeBest = defaults.object(forKey: Keys.lifetimeBest) as? Int ?? 0
+        goldenBallBest = defaults.object(forKey: Keys.goldenBallBest) as? Int ?? 0
         if let modeRaw = defaults.string(forKey: Keys.playMode),
            let saved = PlayMode(rawValue: modeRaw) {
             playMode = saved
