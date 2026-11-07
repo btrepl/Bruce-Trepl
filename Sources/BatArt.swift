@@ -27,11 +27,6 @@ struct BatArtView: View {
             case .fishingPole: FishingPoleArt()
             case .broom: BroomArt()
             case .nutcracker: NutcrackerArt()
-                // The nutcracker is a person-shape, so at the normal rest
-                // angle it reads as a little man standing up instead of a
-                // bat. Lean it a further 20 degrees so it is clearly a
-                // diagonal bat, not a standing figure.
-                .rotationEffect(.degrees(20), anchor: .bottom)
             case .seal: SealArt()
             }
         }
@@ -634,7 +629,7 @@ struct NutcrackerArt: View {
             // Tall dark hat with a gold band.
             RoundedRectangle(cornerRadius: 3)
                 .fill(Color(red: 0.15, green: 0.15, blue: 0.20))
-                .frame(width: 24, height: 16)
+                .frame(width: 24, height: 14)
                 .offset(y: -50)
             RoundedRectangle(cornerRadius: 1)
                 .fill(Color(red: 0.85, green: 0.70, blue: 0.25))
@@ -643,38 +638,36 @@ struct NutcrackerArt: View {
             // Face.
             RoundedRectangle(cornerRadius: 5)
                 .fill(Color(red: 0.95, green: 0.80, blue: 0.65))
-                .frame(width: 20, height: 13)
-                .offset(y: -36)
+                .frame(width: 18, height: 11)
+                .offset(y: -37)
             // Mustache.
             RoundedRectangle(cornerRadius: 1.5)
                 .fill(Color(red: 0.25, green: 0.25, blue: 0.30))
-                .frame(width: 14, height: 3)
-                .offset(y: -32)
-            // Red jacket.
-            RoundedRectangle(cornerRadius: 5)
+                .frame(width: 12, height: 3)
+                .offset(y: -33)
+            // Red jacket: wider and chunkier now, so the soldier reads
+            // as a bat barrel, not a tall thin person.
+            RoundedRectangle(cornerRadius: 6)
                 .fill(Color(red: 0.80, green: 0.15, blue: 0.15))
-                .frame(width: 26, height: 52)
-                .offset(y: -2)
+                .frame(width: 32, height: 48)
+                .offset(y: -4)
             // White belt.
             RoundedRectangle(cornerRadius: 2)
                 .fill(Color.white)
-                .frame(width: 26, height: 6)
-                .offset(y: 8)
+                .frame(width: 32, height: 6)
+                .offset(y: 6)
             // Gold buttons.
             Circle().fill(Color(red: 0.85, green: 0.70, blue: 0.25))
                 .frame(width: 4, height: 4).offset(y: -14)
             Circle().fill(Color(red: 0.85, green: 0.70, blue: 0.25))
-                .frame(width: 4, height: 4).offset(y: -4)
-            // Legs (the grip), reaching the very bottom of the frame and
-            // meeting at the center so the hands wrap a solid grip.
-            RoundedRectangle(cornerRadius: 3)
+                .frame(width: 4, height: 4).offset(y: -2)
+            // ONE thick handle (the grip), not two separate legs: a single
+            // solid bat handle the hands wrap, reaching the very bottom
+            // of the frame (the grip).
+            RoundedRectangle(cornerRadius: 4)
                 .fill(Color(red: 0.20, green: 0.20, blue: 0.25))
-                .frame(width: 11, height: 36)
-                .offset(x: -5.5, y: 42)
-            RoundedRectangle(cornerRadius: 3)
-                .fill(Color(red: 0.20, green: 0.20, blue: 0.25))
-                .frame(width: 11, height: 36)
-                .offset(x: 5.5, y: 42)
+                .frame(width: 16, height: 40)
+                .offset(y: 40)
         }
     }
 }
