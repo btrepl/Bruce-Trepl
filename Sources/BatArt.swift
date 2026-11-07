@@ -21,6 +21,8 @@ struct BatArtView: View {
             case .magicWand: MagicWandArt()
             case .scepter: ScepterArt()
             case .machete: MacheteArt()
+            case .microphone: MicrophoneArt()
+            case .goldenBat: GoldenBatArt()
             }
         }
         .frame(width: 40, height: 120)
@@ -66,6 +68,54 @@ struct ClassicBatArt: View {
             // Flared knob
             Ellipse()
                 .fill(Color(red: 0.70, green: 0.52, blue: 0.32))
+                .frame(width: 16, height: 8)
+                .offset(y: 56)
+        }
+    }
+}
+
+// MARK: - Golden Bat (level-10 premium season-pass reward)
+
+/// Same classic baseball-bat silhouette as the Classic Bat, rendered in
+/// solid gold with sparkles so it reads as a prize, not another wooden bat.
+struct GoldenBatArt: View {
+    var body: some View {
+        ZStack {
+            // Tapered barrel: narrow handle widening to a round barrel.
+            Path { p in
+                p.move(to: CGPoint(x: 17, y: 118))
+                p.addLine(to: CGPoint(x: 17, y: 62))
+                p.addQuadCurve(to: CGPoint(x: 20, y: 8),
+                               control: CGPoint(x: 14, y: 34))
+                p.addQuadCurve(to: CGPoint(x: 28, y: 8),
+                               control: CGPoint(x: 24, y: 2))
+                p.addQuadCurve(to: CGPoint(x: 26, y: 62),
+                               control: CGPoint(x: 30, y: 34))
+                p.addLine(to: CGPoint(x: 23, y: 118))
+                p.closeSubpath()
+            }
+            .fill(
+                LinearGradient(
+                    colors: [Color(red: 1.0, green: 0.85, blue: 0.35), Color(red: 0.95, green: 0.70, blue: 0.15), Color(red: 0.75, green: 0.50, blue: 0.05)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+            // Bright shine down the barrel
+            Path { p in
+                p.move(to: CGPoint(x: 19, y: 100))
+                p.addLine(to: CGPoint(x: 19, y: 20))
+            }
+            .stroke(Color.white.opacity(0.85), lineWidth: 2)
+            // Sparkles on the barrel
+            ForEach([(x: 26, y: -30), (x: 15, y: -10), (x: 27, y: 10)], id: \.x) { sparkle in
+                Text("✦")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.white)
+                    .offset(x: CGFloat(sparkle.x - 20), y: CGFloat(sparkle.y))
+            }
+            // Gold knob
+            Ellipse()
+                .fill(Color(red: 0.65, green: 0.45, blue: 0.05))
                 .frame(width: 16, height: 8)
                 .offset(y: 56)
         }
@@ -288,7 +338,7 @@ struct MagicWandArt: View {
     }
 }
 
-// MARK: - Royal Scepter (Princess Ruby's bat: golden rod + ruby jewel)
+// MARK: - Royal Scepter (golden rod + ruby jewel — still buildable in Build-a-Bat)
 
 struct ScepterArt: View {
     var body: some View {
@@ -333,6 +383,73 @@ struct ScepterArt: View {
                 .frame(width: 14, height: 6)
                 .offset(y: -26)
             // Knob at the bottom of the shaft.
+            Circle()
+                .fill(Color(red: 0.65, green: 0.48, blue: 0.12))
+                .frame(width: 12, height: 12)
+                .offset(y: 54)
+        }
+    }
+}
+
+// MARK: - Microphone (Princess Belle's bat: a large gold microphone)
+
+struct MicrophoneArt: View {
+    var body: some View {
+        ZStack {
+            // Big round mic head with a silver grille.
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 0.95, green: 0.95, blue: 0.97), Color(red: 0.75, green: 0.78, blue: 0.82)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        )
+                    )
+                // Grille crosshatch.
+                ForEach([-11, 0, 11], id: \.self) { x in
+                    Rectangle()
+                        .fill(Color(red: 0.55, green: 0.58, blue: 0.62))
+                        .frame(width: 1.5, height: 36)
+                        .offset(x: CGFloat(x))
+                }
+                ForEach([-11, 0, 11], id: \.self) { y in
+                    Rectangle()
+                        .fill(Color(red: 0.55, green: 0.58, blue: 0.62))
+                        .frame(width: 36, height: 1.5)
+                        .offset(y: CGFloat(y))
+                }
+                // Shine on the grille.
+                Circle()
+                    .fill(Color.white.opacity(0.5))
+                    .frame(width: 8, height: 8)
+                    .offset(x: -8, y: -8)
+            }
+            .frame(width: 36, height: 36)
+            .clipShape(Circle())
+            .offset(y: -28)
+            // Gold ring around the mic head.
+            Circle()
+                .stroke(Color(red: 0.85, green: 0.65, blue: 0.20), lineWidth: 3)
+                .frame(width: 36, height: 36)
+                .offset(y: -28)
+            // Gold collar under the head.
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 0.85, green: 0.65, blue: 0.20))
+                .frame(width: 16, height: 7)
+                .offset(y: -8)
+            // Gold handle.
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color(red: 0.85, green: 0.65, blue: 0.20))
+                .frame(width: 10, height: 62)
+                .offset(y: 26)
+            // Pink grip bands on the handle.
+            ForEach([12, 30], id: \.self) { y in
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 0.90, green: 0.45, blue: 0.65))
+                    .frame(width: 13, height: 5)
+                    .offset(y: CGFloat(y))
+            }
+            // Gold knob at the bottom.
             Circle()
                 .fill(Color(red: 0.65, green: 0.48, blue: 0.12))
                 .frame(width: 12, height: 12)

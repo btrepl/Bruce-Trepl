@@ -29,13 +29,28 @@ Fill in a short description for each, plus the review information App Store Conn
 - Score format: Integer, higher is better (distance in feet)
 - This matches `GameCenterManager.swift` already.
 
+## 3b. Game Center achievements (App Store Connect → your app → Game Center → Achievements)
+
+Build 19 added 6 achievements, reported from `GameCenterManager.swift` / `SeasonPass.swift`. Create each with the exact Achievement ID below — the code reports 100% complete when the trigger fires, and reporting an achievement that does not exist yet simply does nothing, so the game never breaks if these are added later.
+
+| Achievement ID | Title | Description |
+|---|---|---|
+| `com.tntfamily.howfar.achievement.firsthit` | First Hit | Record your first hit |
+| `com.tntfamily.howfar.achievement.hit300` | 300 Club | Hit 300+ feet |
+| `com.tntfamily.howfar.achievement.hit400` | 400 Club | Hit 400+ feet |
+| `com.tntfamily.howfar.achievement.swings100` | Century | Take 100 ranked swings |
+| `com.tntfamily.howfar.achievement.coins1000` | Coin Hoarder | Earn 1,000 total coins |
+| `com.tntfamily.howfar.achievement.maxbat` | Maxed Out | Upgrade a bat to max level |
+
+Note: the "This Week" board in the app is a local filter on the on-device leaderboard, not a second Game Center leaderboard — do not create another leaderboard for it. The one leaderboard in §3 is the only one the code uses.
+
 ## 4. Flip the code from demo to real
 - `StoreManager.stubMode` is already `false` (real StoreKit 2). Purchases
   run through real StoreKit against the products above — create them first.
 - Game Center submission is already wired in `GameCenterManager.swift` — it activates once the leaderboard exists and the player is signed in.
 
 ## 5. Small Business Program (do this early)
-- App Store Connect → Business → enroll in the Small Business Program. This drops Apple's commission from 30% to 15% and applies to the $1.00 app price and all three purchases.
+- App Store Connect → Business → enroll in the Small Business Program. This drops Apple's commission from 30% to 15% and applies to all in-app purchases. (The app itself is now Free under build 16, and there are 7 products, not 3.)
 
 ## 6. Build, TestFlight, submit
 - Builds now compile via Codemagic (free tier) and build 15 (1.0 (15)) is processed in TestFlight — the app record, IAPs, and leaderboard in §§1–3 are created, and `stubMode` in §4 is already flipped to real StoreKit.

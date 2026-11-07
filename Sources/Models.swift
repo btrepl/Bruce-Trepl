@@ -69,7 +69,7 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
         case .ballplayer: return "The Ballplayer"
         case .bigfoot: return "Bigfoot"
         case .snowman: return "Snowman"
-        case .princess: return "Princess Ruby"
+        case .princess: return "Princess Belle"
         case .adventurer: return "Indiana Jane"
         }
     }
@@ -80,7 +80,7 @@ enum PresetID: String, CaseIterable, Identifiable, Codable {
         case .ballplayer: return "A kid with a dream and a big bat."
         case .bigfoot: return "He was never lost. He was practicing."
         case .snowman: return "Tall, skinny, and freezing cold."
-        case .princess: return "Royalty with a really big scepter."
+        case .princess: return "Royalty with a really big microphone."
         case .adventurer: return "She explores. She swings. She conquers."
         }
     }
@@ -114,7 +114,7 @@ enum SpriteCatalog {
                    headEnd: 0.391, torsoEnd: 0.652, grip: CGPoint(x: 0.68, y: 0.18)),
         SpriteSpec(id: "snowman", displayName: "Snowman",
                    headEnd: 0.480, torsoEnd: 0.739, grip: CGPoint(x: 0.84, y: 0.20)),
-        SpriteSpec(id: "princess", displayName: "Princess Ruby",
+        SpriteSpec(id: "princess", displayName: "Princess Belle",
                    headEnd: 0.45, torsoEnd: 0.62, grip: CGPoint(x: 0.78, y: 0.38)),
         SpriteSpec(id: "adventurer", displayName: "Indiana Jane",
                    headEnd: 0.45, torsoEnd: 0.60, grip: CGPoint(x: 0.80, y: 0.38)),
@@ -167,8 +167,17 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
     case magicWand
     case scepter
     case machete
+    case microphone
+    case goldenBat
 
     var id: String { rawValue }
+
+    /// Objects a player may pick in Build-a-Bat. The Golden Bat is
+    /// excluded: it is earned only by reaching level 10 on the premium
+    /// season pass, never built for free.
+    static var buildableObjects: [BatObject] {
+        allCases.filter { $0 != .goldenBat }
+    }
 
     var displayName: String {
         switch self {
@@ -185,6 +194,8 @@ enum BatObject: String, CaseIterable, Identifiable, Codable {
         case .magicWand: return "Magic Wand"
         case .scepter: return "Royal Scepter"
         case .machete: return "Machete"
+        case .microphone: return "Microphone"
+        case .goldenBat: return "Golden Bat"
         }
     }
 }
@@ -244,14 +255,24 @@ struct Bat: Identifiable, Codable, Equatable {
                        object: .iceClub, power: 4, speed: 2, isCustom: false,
                        powerBoost: 0.04)
         case .princess:
-            return Bat(id: "bat-scepter", name: "Royal Scepter",
-                       object: .scepter, power: 5, speed: 3, isCustom: false,
+            return Bat(id: "bat-microphone", name: "Microphone",
+                       object: .microphone, power: 5, speed: 3, isCustom: false,
                        powerBoost: 0.08)
         case .adventurer:
             return Bat(id: "bat-machete", name: "Machete",
                        object: .machete, power: 3, speed: 5, isCustom: false,
                        powerBoost: 0.06)
         }
+    }
+
+    /// The Golden Bat: the level-10 premium season-pass reward.
+    /// It lives in the player's "My Bats" list (isCustom: true) so it can
+    /// be picked in the bat picker, but it is already maxed out
+    /// (upgradeLevel 5, +10%) so the upgrade button never shows for it.
+    static func goldenBat() -> Bat {
+        Bat(id: "bat-golden", name: "Golden Bat",
+            object: .goldenBat, power: 5, speed: 4, isCustom: true,
+            powerBoost: 0.10, upgradeLevel: Bat.maxUpgradeLevel)
     }
 }
 

@@ -110,6 +110,8 @@ final class GameState: ObservableObject {
     @Published var claimedPremiumRewards: Set<Int> = []
     /// True when the premium season pass ($4.99) is owned.
     @Published var premiumPassOwned: Bool = false
+    /// True once the Golden Bat (level-10 premium reward) has been granted.
+    @Published var goldenBatUnlocked: Bool = false
     /// Lifetime totals for achievements.
     @Published var totalCoinsEarned: Int = 0
     @Published var totalRankedSwings: Int = 0
@@ -134,6 +136,7 @@ final class GameState: ObservableObject {
         static let claimedFree = "hf ClaimedFree"
         static let claimedPremium = "hf ClaimedPremium"
         static let premiumPass = "hf PremiumPass"
+        static let goldenBat = "hf GoldenBat"
         static let totalCoinsEarned = "hf TotalCoinsEarned"
         static let totalRankedSwings = "hf TotalRankedSwings"
         static let season = "hf Season"
@@ -350,7 +353,9 @@ final class GameState: ObservableObject {
     }
 
     /// Claim a premium-track reward. Requires the premium pass.
-    /// Returns the coins (the Golden Bat at level 10 is noted in the UI).
+    /// Returns the coins. At level 10 this also grants the Golden Bat
+    /// (+10% power) into the player's "My Bats" list — before this fix
+    /// the pass promised it in the UI but nothing was ever granted.
     @discardableResult
     func claimPremiumReward(level: Int) -> Int? {
         guard premiumPassOwned else { return nil }
@@ -359,7 +364,23 @@ final class GameState: ObservableObject {
         claimedPremiumRewards.insert(level)
         defaults.set(Array(claimedPremiumRewards), forKey: Keys.claimedPremium)
         earnCoins(row.premiumCoins)
+        if level == 10 {
+            unlockGoldenBat()
+        }
         return row.premiumCoins
+    }
+
+    /// Grant the Golden Bat once, and equip it. Safe to call again:
+    /// it does nothing when already unlocked.
+    func unlockGoldenBat() {
+        guard !goldenBatUnlocked else { return }
+        goldenBatUnlocked = true
+        defaults.set(true, forKey: Keys.goldenBat)
+        if !customBats.contains(where: { $0.id == Bat.goldenBat().id }) {
+            customBats.append(Bat.goldenBat())
+            persistCustomBats()
+        }
+        bat = Bat.goldenBat()
     }
 
     /// Mark the premium season pass as owned (synced from the store).
@@ -489,6 +510,12 @@ final class GameState: ObservableObject {
         if let data = defaults.data(forKey: Keys.customBats),
            let decoded = try? JSONDecoder().decode([Bat].self, from: data) {
             customBats = decoded
+        }
+        goldenBatUnlocked = defaults.bool(forKey: Keys.goldenBat)
+        // Repair: if the bat was unlocked but is missing from the saved
+        // list (e.g. claimed before this fix shipped), put it back.
+        if goldenBatUnlocked, !customBats.contains(where: { $0.id == Bat.goldenBat().id }) {
+            customBats.append(Bat.goldenBat())
         }
         if let rawSeason = defaults.string(forKey: Keys.season),
            let decodedSeason = Season(rawValue: rawSeason) {
